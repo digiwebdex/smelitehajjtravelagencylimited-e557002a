@@ -142,6 +142,9 @@ export type Database = {
       footer_content: {
         Row: {
           company_description: string | null
+          contact_address: string | null
+          contact_email: string | null
+          contact_phones: string[] | null
           copyright_text: string | null
           created_at: string
           id: string
@@ -152,6 +155,9 @@ export type Database = {
         }
         Insert: {
           company_description?: string | null
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phones?: string[] | null
           copyright_text?: string | null
           created_at?: string
           id?: string
@@ -162,6 +168,9 @@ export type Database = {
         }
         Update: {
           company_description?: string | null
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phones?: string[] | null
           copyright_text?: string | null
           created_at?: string
           id?: string
