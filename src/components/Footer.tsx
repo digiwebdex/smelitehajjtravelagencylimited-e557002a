@@ -25,6 +25,9 @@ interface FooterContent {
   quick_links: FooterLink[];
   services_links: ServiceLink[];
   social_links: SocialLink[];
+  contact_address?: string;
+  contact_phones?: string[];
+  contact_email?: string;
 }
 
 const Footer = () => {
@@ -53,6 +56,9 @@ const Footer = () => {
       { platform: "Instagram", href: "#" },
       { platform: "Youtube", href: "#" },
     ],
+    contact_address: "Savar, Dhaka, Bangladesh",
+    contact_phones: ["+880 1234-567890", "+880 9876-543210"],
+    contact_email: "info@smelitehajj.com",
   });
 
   useEffect(() => {
@@ -73,6 +79,9 @@ const Footer = () => {
         quick_links: Array.isArray(data.quick_links) ? (data.quick_links as unknown as FooterLink[]) : content.quick_links,
         services_links: Array.isArray(data.services_links) ? (data.services_links as unknown as ServiceLink[]) : content.services_links,
         social_links: Array.isArray(data.social_links) ? (data.social_links as unknown as SocialLink[]) : content.social_links,
+        contact_address: (data as any).contact_address || content.contact_address,
+        contact_phones: Array.isArray((data as any).contact_phones) ? (data as any).contact_phones : content.contact_phones,
+        contact_email: (data as any).contact_email || content.contact_email,
       });
     }
   };
@@ -214,7 +223,7 @@ const Footer = () => {
                   <MapPin className="w-5 h-5 text-secondary" />
                 </div>
                 <span className="text-primary-foreground/80 text-sm pt-2">
-                  Savar, Dhaka, Bangladesh
+                  {content.contact_address}
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -222,8 +231,9 @@ const Footer = () => {
                   <Phone className="w-5 h-5 text-secondary" />
                 </div>
                 <div className="text-primary-foreground/80 text-sm pt-2">
-                  <div>+880 1234-567890</div>
-                  <div>+880 9876-543210</div>
+                  {content.contact_phones?.map((phone, index) => (
+                    <div key={index}>{phone}</div>
+                  ))}
                 </div>
               </li>
               <li className="flex items-start gap-3">
@@ -231,7 +241,7 @@ const Footer = () => {
                   <Mail className="w-5 h-5 text-secondary" />
                 </div>
                 <span className="text-primary-foreground/80 text-sm pt-2">
-                  info@smelitehajj.com
+                  {content.contact_email}
                 </span>
               </li>
             </ul>

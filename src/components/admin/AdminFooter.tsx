@@ -24,6 +24,9 @@ interface FooterContent {
   services_links: FooterLink[];
   social_links: SocialLink[];
   copyright_text: string;
+  contact_address: string;
+  contact_phones: string[];
+  contact_email: string;
 }
 
 const AdminFooter = () => {
@@ -37,6 +40,9 @@ const AdminFooter = () => {
     services_links: [],
     social_links: [],
     copyright_text: "",
+    contact_address: "",
+    contact_phones: [""],
+    contact_email: "",
   });
 
   useEffect(() => {
@@ -54,6 +60,9 @@ const AdminFooter = () => {
         services_links: Array.isArray(data.services_links) ? (data.services_links as unknown as FooterLink[]) : [],
         social_links: Array.isArray(data.social_links) ? (data.social_links as unknown as SocialLink[]) : [],
         copyright_text: data.copyright_text || "",
+        contact_address: (data as any).contact_address || "",
+        contact_phones: Array.isArray((data as any).contact_phones) ? (data as any).contact_phones : [""],
+        contact_email: (data as any).contact_email || "",
       });
     }
     setLoading(false);
@@ -68,6 +77,9 @@ const AdminFooter = () => {
       services_links: footerContent.services_links as unknown as null,
       social_links: footerContent.social_links as unknown as null,
       copyright_text: footerContent.copyright_text,
+      contact_address: footerContent.contact_address,
+      contact_phones: footerContent.contact_phones.filter(p => p.trim() !== ""),
+      contact_email: footerContent.contact_email,
     };
 
     let error;
@@ -90,6 +102,17 @@ const AdminFooter = () => {
   const addQuickLink = () => setFooterContent({ ...footerContent, quick_links: [...footerContent.quick_links, { label: "", href: "" }] });
   const addServiceLink = () => setFooterContent({ ...footerContent, services_links: [...footerContent.services_links, { label: "", href: "" }] });
   const addSocialLink = () => setFooterContent({ ...footerContent, social_links: [...footerContent.social_links, { platform: "", url: "" }] });
+  const addPhone = () => setFooterContent({ ...footerContent, contact_phones: [...footerContent.contact_phones, ""] });
+
+  const updatePhone = (index: number, value: string) => {
+    const newPhones = [...footerContent.contact_phones];
+    newPhones[index] = value;
+    setFooterContent({ ...footerContent, contact_phones: newPhones });
+  };
+
+  const removePhone = (index: number) => {
+    setFooterContent({ ...footerContent, contact_phones: footerContent.contact_phones.filter((_, i) => i !== index) });
+  };
 
   const updateQuickLink = (index: number, field: keyof FooterLink, value: string) => {
     const newLinks = [...footerContent.quick_links];
@@ -196,6 +219,61 @@ const AdminFooter = () => {
                 </Button>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Contact Info */}
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Address</label>
+              <Input
+                value={footerContent.contact_address}
+                onChange={(e) => setFooterContent({ ...footerContent, contact_address: e.target.value })}
+                placeholder="Savar, Dhaka, Bangladesh"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium">Phone Numbers</label>
+                <Button type="button" variant="outline" size="sm" onClick={addPhone}>
+                  <Plus className="w-4 h-4 mr-1" />Add Phone
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {footerContent.contact_phones.map((phone, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input 
+                      value={phone} 
+                      onChange={(e) => updatePhone(index, e.target.value)} 
+                      placeholder="+880 1234-567890" 
+                      className="flex-1" 
+                    />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => removePhone(index)}
+                      disabled={footerContent.contact_phones.length === 1}
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Email Address</label>
+              <Input
+                type="email"
+                value={footerContent.contact_email}
+                onChange={(e) => setFooterContent({ ...footerContent, contact_email: e.target.value })}
+                placeholder="info@smelitehajj.com"
+              />
+            </div>
           </div>
         </div>
 
