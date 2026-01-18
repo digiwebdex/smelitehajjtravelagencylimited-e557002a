@@ -221,7 +221,7 @@ const VisaServices = () => {
                 </p>
                 <Button
                   size="sm"
-                  className="w-full bg-gradient-primary text-primary-foreground opacity-0 group-hover:opacity-100 transition-all duration-300"
+                  className="w-full bg-gradient-primary text-primary-foreground transition-all duration-300 hover:opacity-90"
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedCountry(country);
