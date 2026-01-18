@@ -34,7 +34,6 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, CURRENCY } from "@/lib/currency";
 import ImageUpload from "./ImageUpload";
-import MultiImageUpload from "./MultiImageUpload";
 
 interface Package {
   id: string;
@@ -58,7 +57,6 @@ interface Package {
   show_book_now: boolean;
   hotel_image_url: string | null;
   hotel_map_link: string | null;
-  hotel_images: string[] | null;
 }
 
 interface AdminPackagesProps {
@@ -96,7 +94,6 @@ const AdminPackages = ({ onUpdate }: AdminPackagesProps) => {
     show_book_now: true,
     hotel_image_url: "",
     hotel_map_link: "",
-    hotel_images: [] as string[],
   });
 
   useEffect(() => {
@@ -137,7 +134,6 @@ const AdminPackages = ({ onUpdate }: AdminPackagesProps) => {
       show_book_now: true,
       hotel_image_url: "",
       hotel_map_link: "",
-      hotel_images: [],
     });
     setEditingPackage(null);
   };
@@ -165,7 +161,6 @@ const AdminPackages = ({ onUpdate }: AdminPackagesProps) => {
       show_book_now: pkg.show_book_now ?? true,
       hotel_image_url: pkg.hotel_image_url || "",
       hotel_map_link: pkg.hotel_map_link || "",
-      hotel_images: pkg.hotel_images || [],
     });
     setIsDialogOpen(true);
   };
@@ -194,7 +189,6 @@ const AdminPackages = ({ onUpdate }: AdminPackagesProps) => {
       show_book_now: formData.show_book_now,
       hotel_image_url: formData.hotel_image_url || null,
       hotel_map_link: formData.hotel_map_link || null,
-      hotel_images: formData.hotel_images.length > 0 ? formData.hotel_images : null,
     };
 
     let error;
@@ -468,17 +462,15 @@ const AdminPackages = ({ onUpdate }: AdminPackagesProps) => {
                 />
 
                 <div className="space-y-3 p-3 bg-secondary/10 rounded-lg border border-secondary/20">
-                  <h4 className="font-medium text-sm text-secondary">Hotel Images & Map</h4>
-                  
-                  <MultiImageUpload
-                    value={formData.hotel_images}
-                    onChange={(urls) => setFormData({ ...formData, hotel_images: urls })}
+                  <h4 className="font-medium text-sm text-secondary">Hotel Image & Map</h4>
+                  <ImageUpload
+                    value={formData.hotel_image_url}
+                    onChange={(url) => setFormData({ ...formData, hotel_image_url: url })}
                     onUpload={uploadImage}
                     uploading={uploading}
-                    label="Hotel Gallery Images"
-                    maxImages={6}
+                    label="Hotel Image (shown on card side)"
+                    placeholder="https://example.com/hotel-image.jpg"
                   />
-                  
                   <div className="space-y-2">
                     <Label htmlFor="hotel_map_link">Hotel Map Link (Google Maps)</Label>
                     <Input

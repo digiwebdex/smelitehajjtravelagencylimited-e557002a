@@ -512,7 +512,6 @@ export type Database = {
           flight_type: string | null
           full_description: string | null
           hotel_image_url: string | null
-          hotel_images: string[] | null
           hotel_map_link: string | null
           hotel_rating: number | null
           hotel_type: string | null
@@ -538,7 +537,6 @@ export type Database = {
           flight_type?: string | null
           full_description?: string | null
           hotel_image_url?: string | null
-          hotel_images?: string[] | null
           hotel_map_link?: string | null
           hotel_rating?: number | null
           hotel_type?: string | null
@@ -564,7 +562,6 @@ export type Database = {
           flight_type?: string | null
           full_description?: string | null
           hotel_image_url?: string | null
-          hotel_images?: string[] | null
           hotel_map_link?: string | null
           hotel_rating?: number | null
           hotel_type?: string | null
