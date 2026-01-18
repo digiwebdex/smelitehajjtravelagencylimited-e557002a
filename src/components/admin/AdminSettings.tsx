@@ -32,7 +32,8 @@ import {
   ImageIcon,
   Sun,
   Moon,
-  Monitor
+  Monitor,
+  MousePointerClick
 } from "lucide-react";
 import { CURRENCY } from "@/lib/currency";
 import ImageUpload from "./ImageUpload";
@@ -64,6 +65,7 @@ interface Appearance {
   primary_color: string;
   show_announcement_bar: boolean;
   announcement_text: string;
+  show_book_now_button: boolean;
 }
 
 // Theme Toggle Icon Component
@@ -137,6 +139,7 @@ const AdminSettings = () => {
     primary_color: "#10b981",
     show_announcement_bar: false,
     announcement_text: "",
+    show_book_now_button: true,
   });
 
   const [notifications, setNotifications] = useState({
@@ -569,6 +572,26 @@ const AdminSettings = () => {
                         />
                       </div>
                     )}
+                  </CardContent>
+                </Card>
+
+                <Card className="border-dashed">
+                  <CardContent className="pt-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <MousePointerClick className="w-5 h-5 text-primary" />
+                        <div>
+                          <Label className="text-base">Book Now Button</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Show the "Book Now" button in the header
+                          </p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={appearance.show_book_now_button}
+                        onCheckedChange={(checked) => setAppearance({ ...appearance, show_book_now_button: checked })}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
               </div>
