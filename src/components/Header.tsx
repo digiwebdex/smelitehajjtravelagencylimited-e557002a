@@ -208,11 +208,13 @@ const Header = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-              <a href="#hajj">
-                <Button className="bg-gradient-primary hover:opacity-90 shadow-gold">
-                  Book Now
-                </Button>
-              </a>
+              {appearance.show_book_now_button !== false && (
+                <a href="#hajj">
+                  <Button className="bg-gradient-primary hover:opacity-90 shadow-gold">
+                    Book Now
+                  </Button>
+                </a>
+              )}
             </div>
 
             {/* Mobile Menu Toggle */}
@@ -245,11 +247,13 @@ const Header = () => {
                       Track Order
                     </Button>
                   </Link>
-                  <a href="#hajj">
-                    <Button className="bg-gradient-primary w-full">
-                      Book Now
-                    </Button>
-                  </a>
+                  {appearance.show_book_now_button !== false && (
+                    <a href="#hajj">
+                      <Button className="bg-gradient-primary w-full">
+                        Book Now
+                      </Button>
+                    </a>
+                  )}
                 </div>
               </div>
             </div>

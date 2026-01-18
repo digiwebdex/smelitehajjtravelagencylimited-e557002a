@@ -26,6 +26,7 @@ export interface Appearance {
   primary_color: string;
   show_announcement_bar: boolean;
   announcement_text: string;
+  show_book_now_button: boolean;
 }
 
 export interface SiteSettings {
@@ -59,6 +60,7 @@ const defaultSettings: SiteSettings = {
     primary_color: "#10b981",
     show_announcement_bar: false,
     announcement_text: "",
+    show_book_now_button: true,
   },
   loading: true,
 };
