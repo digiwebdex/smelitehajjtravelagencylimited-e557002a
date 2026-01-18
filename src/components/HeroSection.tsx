@@ -56,9 +56,22 @@ const HeroSection = () => {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     fetchHeroContent();
+  }, []);
+
+  // Mouse parallax effect
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 2; // -1 to 1
+      const y = (e.clientY / window.innerHeight - 0.5) * 2; // -1 to 1
+      setMousePosition({ x, y });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   // Auto-slide effect
@@ -244,45 +257,87 @@ const HeroSection = () => {
       {/* Arabic Calligraphy Decorative Elements - Left Side */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 0.15, x: 0 }}
-        transition={{ duration: 1.2, delay: 0.5 }}
+        animate={{ 
+          opacity: 0.15, 
+          x: mousePosition.x * -15,
+          y: mousePosition.y * -10
+        }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         className="absolute left-0 top-0 h-full w-32 md:w-48 lg:w-64 hidden md:flex flex-col justify-center items-center pointer-events-none"
       >
-        <div className="font-arabic text-secondary text-6xl md:text-7xl lg:text-9xl leading-none writing-vertical-rl transform rotate-180 select-none opacity-60">
+        <motion.div 
+          animate={{ x: mousePosition.x * -8, y: mousePosition.y * -5 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="font-arabic text-secondary text-6xl md:text-7xl lg:text-9xl leading-none writing-vertical-rl transform rotate-180 select-none opacity-60"
+        >
           بِسْمِ اللَّهِ
-        </div>
-        <div className="font-arabic text-secondary/50 text-4xl md:text-5xl lg:text-7xl leading-none writing-vertical-rl transform rotate-180 mt-8 select-none">
+        </motion.div>
+        <motion.div 
+          animate={{ x: mousePosition.x * -12, y: mousePosition.y * -8 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="font-arabic text-secondary/50 text-4xl md:text-5xl lg:text-7xl leading-none writing-vertical-rl transform rotate-180 mt-8 select-none"
+        >
           الرَّحْمَنِ
-        </div>
-        <div className="font-arabic text-secondary/30 text-3xl md:text-4xl lg:text-6xl leading-none writing-vertical-rl transform rotate-180 mt-8 select-none">
+        </motion.div>
+        <motion.div 
+          animate={{ x: mousePosition.x * -6, y: mousePosition.y * -4 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="font-arabic text-secondary/30 text-3xl md:text-4xl lg:text-6xl leading-none writing-vertical-rl transform rotate-180 mt-8 select-none"
+        >
           الرَّحِيمِ
-        </div>
+        </motion.div>
       </motion.div>
 
       {/* Arabic Calligraphy Decorative Elements - Right Side */}
       <motion.div
         initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 0.2, x: 0 }}
-        transition={{ duration: 1.2, delay: 0.7 }}
+        animate={{ 
+          opacity: 0.2, 
+          x: mousePosition.x * 20,
+          y: mousePosition.y * 15
+        }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         className="absolute right-4 top-1/4 hidden lg:flex flex-col items-center pointer-events-none"
       >
-        <div className="font-thuluth text-secondary text-6xl lg:text-8xl leading-none select-none drop-shadow-lg" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+        <motion.div 
+          animate={{ x: mousePosition.x * 10, y: mousePosition.y * 8 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="font-thuluth text-secondary text-6xl lg:text-8xl leading-none select-none drop-shadow-lg" 
+          style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}
+        >
           ﷲ
-        </div>
-        <div className="font-calligraphy text-secondary/80 text-4xl lg:text-6xl leading-none mt-6 select-none drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.2)' }}>
+        </motion.div>
+        <motion.div 
+          animate={{ x: mousePosition.x * 15, y: mousePosition.y * 12 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="font-calligraphy text-secondary/80 text-4xl lg:text-6xl leading-none mt-6 select-none drop-shadow-md" 
+          style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.2)' }}
+        >
           ﷴ
-        </div>
+        </motion.div>
       </motion.div>
 
       {/* Floating Decorative Circles */}
       <motion.div
-        animate={{ y: [-10, 10, -10] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ 
+          y: [-10, 10, -10],
+          x: mousePosition.x * 25,
+        }}
+        transition={{ 
+          y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+          x: { duration: 0.4, ease: "easeOut" }
+        }}
         className="absolute top-1/4 left-[15%] w-20 h-20 border border-secondary/30 rounded-full hidden lg:block"
       />
       <motion.div
-        animate={{ y: [10, -10, 10] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ 
+          y: [10, -10, 10],
+          x: mousePosition.x * -20,
+        }}
+        transition={{ 
+          y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+          x: { duration: 0.5, ease: "easeOut" }
+        }}
         className="absolute bottom-1/4 right-[15%] w-32 h-32 border border-secondary/20 rounded-full hidden lg:block"
       />
 
