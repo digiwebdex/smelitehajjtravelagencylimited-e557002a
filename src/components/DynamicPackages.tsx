@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Check, ArrowUpDown, ChevronUp, Eye, GitCompare, X } from "lucide-react";
+import { Star, Check, ArrowUpDown, ChevronUp, Eye, GitCompare, X, Moon } from "lucide-react";
+import MakkahIcon from "./icons/MakkahIcon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -145,6 +146,20 @@ const ExpandablePackageCard = ({
             </div>
 
             <div className="relative z-10">
+              {/* Package type icon badge */}
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-secondary/90 flex items-center justify-center shadow-md">
+                  {pkg.type === 'hajj' ? (
+                    <MakkahIcon className="w-5 h-5 text-secondary-foreground" />
+                  ) : (
+                    <Moon className="w-4 h-4 text-secondary-foreground fill-secondary-foreground" />
+                  )}
+                </div>
+                <Badge variant="secondary" className="bg-white/20 text-white border-0 uppercase text-xs font-bold tracking-wide">
+                  {pkg.type}
+                </Badge>
+              </div>
+              
               <h3 className="font-heading text-xl font-bold whitespace-nowrap mb-3">{pkg.title}</h3>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="secondary" className="bg-white/20 text-white border-0 whitespace-nowrap">
