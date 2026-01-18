@@ -7,10 +7,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, FileText, ClipboardList } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, ClipboardList, GripVertical } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface VisaCountry {
   id: string;
@@ -26,6 +43,71 @@ interface VisaCountry {
   validity_period: string | null;
 }
 
+interface SortableRowProps {
+  item: VisaCountry;
+  onEdit: (item: VisaCountry) => void;
+  onDelete: (id: string) => void;
+  onToggleActive: (item: VisaCountry) => void;
+}
+
+const SortableRow = ({ item, onEdit, onDelete, onToggleActive }: SortableRowProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <TableRow ref={setNodeRef} style={style} className={isDragging ? "bg-muted" : ""}>
+      <TableCell>
+        <button
+          className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
+        </button>
+      </TableCell>
+      <TableCell className="text-2xl">{item.flag_emoji}</TableCell>
+      <TableCell className="font-medium">{item.country_name}</TableCell>
+      <TableCell>{item.processing_time}</TableCell>
+      <TableCell>৳{item.price.toLocaleString()}</TableCell>
+      <TableCell>
+        <Badge variant="secondary" className="text-xs">
+          {item.requirements?.length || 0} items
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <Badge variant="secondary" className="text-xs">
+          {item.documents_needed?.length || 0} items
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <Switch checked={item.is_active} onCheckedChange={() => onToggleActive(item)} />
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="icon" onClick={() => onEdit(item)}>
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => onDelete(item.id)}>
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+};
+
 const AdminVisa = () => {
   const { toast } = useToast();
   const [countries, setCountries] = useState<VisaCountry[]>([]);
@@ -37,6 +119,13 @@ const AdminVisa = () => {
     requirements: "", documents_needed: "", description: "", validity_period: ""
   });
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   useEffect(() => {
     fetchCountries();
   }, []);
@@ -45,6 +134,33 @@ const AdminVisa = () => {
     const { data, error } = await supabase.from("visa_countries").select("*").order("order_index");
     if (!error && data) setCountries(data);
     setLoading(false);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = countries.findIndex((item) => item.id === active.id);
+      const newIndex = countries.findIndex((item) => item.id === over.id);
+
+      const newCountries = arrayMove(countries, oldIndex, newIndex);
+      setCountries(newCountries);
+
+      // Update order_index in database
+      const updates = newCountries.map((country, index) => ({
+        id: country.id,
+        order_index: index,
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from("visa_countries")
+          .update({ order_index: update.order_index })
+          .eq("id", update.id);
+      }
+
+      toast({ title: "Success", description: "Order updated" });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,7 +235,7 @@ const AdminVisa = () => {
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Visa Countries</CardTitle>
-          <CardDescription>Manage visa processing countries and prices</CardDescription>
+          <CardDescription>Manage visa processing countries and prices. Drag rows to reorder.</CardDescription>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) { setEditingItem(null); resetForm(); } }}>
           <DialogTrigger asChild>
@@ -210,47 +326,43 @@ const AdminVisa = () => {
         </Dialog>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Flag</TableHead>
-              <TableHead>Country</TableHead>
-              <TableHead>Processing Time</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Requirements</TableHead>
-              <TableHead>Documents</TableHead>
-              <TableHead>Active</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {countries.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="text-2xl">{item.flag_emoji}</TableCell>
-                <TableCell className="font-medium">{item.country_name}</TableCell>
-                <TableCell>{item.processing_time}</TableCell>
-                <TableCell>৳{item.price.toLocaleString()}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className="text-xs">
-                    {item.requirements?.length || 0} items
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className="text-xs">
-                    {item.documents_needed?.length || 0} items
-                  </Badge>
-                </TableCell>
-                <TableCell><Switch checked={item.is_active} onCheckedChange={() => toggleActive(item)} /></TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}><Edit className="w-4 h-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
-                  </div>
-                </TableCell>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-10"></TableHead>
+                <TableHead>Flag</TableHead>
+                <TableHead>Country</TableHead>
+                <TableHead>Processing Time</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Requirements</TableHead>
+                <TableHead>Documents</TableHead>
+                <TableHead>Active</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              <SortableContext
+                items={countries.map((c) => c.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {countries.map((item) => (
+                  <SortableRow
+                    key={item.id}
+                    item={item}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onToggleActive={toggleActive}
+                  />
+                ))}
+              </SortableContext>
+            </TableBody>
+          </Table>
+        </DndContext>
         {countries.length === 0 && <p className="text-center text-muted-foreground py-8">No countries yet.</p>}
       </CardContent>
     </Card>
