@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Grid3X3, SlidersHorizontal, Pause, Play, Maximize, Minimize, ZoomIn, ZoomOut, RotateCcw, Sparkles, Camera } from "lucide-react";
+import { Grid3X3, SlidersHorizontal, Pause, Play, Maximize, Minimize, ZoomIn, ZoomOut, RotateCcw, Sparkles, Camera, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
@@ -173,6 +173,45 @@ const GallerySection = () => {
       document.exitFullscreen();
     }
   };
+
+  // Navigate to previous/next image in lightbox
+  const handlePrevImage = useCallback(() => {
+    if (!selectedImage) return;
+    const currentIndex = images.findIndex(img => img.id === selectedImage.id);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : images.length - 1;
+    setSelectedImage(images[prevIndex]);
+    setZoomLevel(1);
+    setPanPosition({ x: 0, y: 0 });
+  }, [selectedImage, images]);
+
+  const handleNextImage = useCallback(() => {
+    if (!selectedImage) return;
+    const currentIndex = images.findIndex(img => img.id === selectedImage.id);
+    const nextIndex = currentIndex < images.length - 1 ? currentIndex + 1 : 0;
+    setSelectedImage(images[nextIndex]);
+    setZoomLevel(1);
+    setPanPosition({ x: 0, y: 0 });
+  }, [selectedImage, images]);
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (!selectedImage) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handlePrevImage();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleNextImage();
+      } else if (e.key === "Escape") {
+        handleCloseLightbox();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImage, handlePrevImage, handleNextImage]);
 
   // Pinch-to-zoom handlers
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -578,14 +617,30 @@ const GallerySection = () => {
 
           {/* Image Container */}
           <div 
-            className="flex-1 flex items-center justify-center overflow-hidden"
+            className="flex-1 flex items-center justify-center overflow-hidden relative"
             onClick={(e) => e.stopPropagation()}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onWheel={handleWheel}
           >
+            {/* Left Navigation Arrow */}
+            {images.length > 1 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePrevImage();
+                }}
+                className="absolute left-4 z-10 w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 text-white border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-110"
+              >
+                <ChevronLeft className="w-8 h-8" />
+              </Button>
+            )}
+
             <motion.div
+              key={selectedImage.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
@@ -603,7 +658,29 @@ const GallerySection = () => {
                 draggable={false}
               />
             </motion.div>
+
+            {/* Right Navigation Arrow */}
+            {images.length > 1 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleNextImage();
+                }}
+                className="absolute right-4 z-10 w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 text-white border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-110"
+              >
+                <ChevronRight className="w-8 h-8" />
+              </Button>
+            )}
           </div>
+
+          {/* Image Counter */}
+          {images.length > 1 && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 px-4 py-2 rounded-full text-white text-sm font-medium">
+              {images.findIndex(img => img.id === selectedImage.id) + 1} / {images.length}
+            </div>
+          )}
 
           {/* Caption */}
           {selectedImage.caption && (
