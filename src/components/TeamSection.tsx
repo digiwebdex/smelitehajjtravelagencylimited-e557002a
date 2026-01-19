@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users } from "lucide-react";
+import { Users, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import IslamicBorder from "./IslamicBorder";
 
@@ -12,6 +12,7 @@ interface TeamMember {
   avatar_url?: string;
   board_type: string;
   order_index: number;
+  whatsapp_number?: string;
 }
 
 const TeamSection = () => {
@@ -118,7 +119,7 @@ const TeamSection = () => {
                 key={member.id}
                 variants={cardVariants}
                 whileHover={{ y: -8 }}
-                className="bg-card rounded-2xl shadow-elegant hover:shadow-lg transition-all duration-300 group text-center overflow-hidden"
+                className="bg-card rounded-2xl shadow-elegant hover:shadow-lg transition-all duration-300 group text-center overflow-hidden border-b-4 border-secondary"
               >
                 {/* Square Image Container */}
                 <div className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
@@ -148,9 +149,20 @@ const TeamSection = () => {
                   <h3 className="font-heading font-bold text-xl text-foreground mb-2">
                     {member.name}
                   </h3>
-                  <p className="text-secondary font-semibold text-sm uppercase tracking-wide">
+                  <p className="text-secondary font-semibold text-sm uppercase tracking-wide mb-3">
                     {member.role}
                   </p>
+                  {member.whatsapp_number && (
+                    <a
+                      href={`https://wa.me/${member.whatsapp_number.replace(/[^0-9]/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent/80 transition-colors font-medium"
+                    >
+                      <Phone className="w-4 h-4" />
+                      {member.whatsapp_number}
+                    </a>
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -186,7 +198,7 @@ const TeamSection = () => {
                     key={member.id}
                     variants={cardVariants}
                     whileHover={{ y: -8 }}
-                    className="bg-card rounded-2xl shadow-elegant hover:shadow-lg transition-all duration-300 group overflow-hidden flex"
+                    className="bg-card rounded-2xl shadow-elegant hover:shadow-lg transition-all duration-300 group overflow-hidden flex border-b-4 border-secondary"
                   >
                     {/* Square Image Container */}
                     <div className="relative w-44 h-44 sm:w-52 sm:h-52 md:w-48 md:h-48 lg:w-60 lg:h-60 flex-shrink-0 overflow-hidden bg-gradient-to-br from-secondary/20 to-secondary/5">

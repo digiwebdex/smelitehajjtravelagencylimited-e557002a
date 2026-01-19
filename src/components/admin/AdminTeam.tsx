@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import ImageUpload from "./ImageUpload";
-import { Plus, Edit, Trash2, User } from "lucide-react";
+import { Plus, Edit, Trash2, User, Phone } from "lucide-react";
 
 interface TeamMember {
   id: string;
@@ -23,6 +23,7 @@ interface TeamMember {
   board_type: string;
   order_index: number;
   is_active: boolean;
+  whatsapp_number: string;
 }
 
 const AdminTeam = () => {
@@ -32,7 +33,7 @@ const AdminTeam = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<TeamMember | null>(null);
   const [formData, setFormData] = useState({
-    name: "", role: "", qualifications: "", avatar_url: "", board_type: "management"
+    name: "", role: "", qualifications: "", avatar_url: "", board_type: "management", whatsapp_number: ""
   });
 
   const { uploadImage, uploading } = useImageUpload({
@@ -71,14 +72,14 @@ const AdminTeam = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", role: "", qualifications: "", avatar_url: "", board_type: "management" });
+    setFormData({ name: "", role: "", qualifications: "", avatar_url: "", board_type: "management", whatsapp_number: "" });
   };
 
   const handleEdit = (item: TeamMember) => {
     setEditingItem(item);
     setFormData({
       name: item.name, role: item.role, qualifications: item.qualifications || "",
-      avatar_url: item.avatar_url || "", board_type: item.board_type
+      avatar_url: item.avatar_url || "", board_type: item.board_type, whatsapp_number: item.whatsapp_number || ""
     });
     setIsDialogOpen(true);
   };
@@ -109,6 +110,7 @@ const AdminTeam = () => {
             <TableHead>Avatar</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Role</TableHead>
+            <TableHead>WhatsApp</TableHead>
             <TableHead className="max-w-[200px]">Qualifications</TableHead>
             <TableHead>Active</TableHead>
             <TableHead>Actions</TableHead>
@@ -127,6 +129,16 @@ const AdminTeam = () => {
               </TableCell>
               <TableCell className="font-medium">{item.name}</TableCell>
               <TableCell>{item.role}</TableCell>
+              <TableCell>
+                {item.whatsapp_number ? (
+                  <span className="flex items-center gap-1 text-accent text-sm">
+                    <Phone className="w-3 h-3" />
+                    {item.whatsapp_number}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground text-sm">—</span>
+                )}
+              </TableCell>
               <TableCell className="max-w-[200px]">
                 <p className="text-sm text-muted-foreground line-clamp-2">{item.qualifications || "—"}</p>
               </TableCell>
@@ -194,6 +206,15 @@ const AdminTeam = () => {
                   placeholder="e.g., Honours Islamic Studies, National University, Bangladesh"
                 />
                 <p className="text-xs text-muted-foreground mt-1">This appears on hover overlay on the team section</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">WhatsApp Number</label>
+                <Input 
+                  value={formData.whatsapp_number} 
+                  onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })} 
+                  placeholder="e.g., +8801712345678"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Shows on card for management board members</p>
               </div>
               <Button type="submit" className="w-full" disabled={uploading}>
                 {editingItem ? "Update" : "Create"}
