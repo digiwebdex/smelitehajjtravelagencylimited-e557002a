@@ -300,7 +300,7 @@ const HeroSection = () => {
   return (
     <section 
       id="home" 
-      className={`relative min-h-screen flex items-center justify-center overflow-hidden ${isLight ? "bg-background" : ""}`}
+      className={`relative min-h-[70vh] flex items-center justify-center overflow-hidden ${isLight ? "bg-background" : ""}`}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -451,7 +451,7 @@ const HeroSection = () => {
               {/* Title */}
               <motion.h1
                 variants={itemVariants}
-                className={`font-arabic text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-normal tracking-wide overflow-visible ${textPrimary}`}
+                className={`font-arabic text-3xl md:text-5xl lg:text-6xl font-bold mb-4 leading-normal tracking-wide overflow-visible ${textPrimary}`}
               >
                 <span className="inline-block">{content.title}</span>
                 {content.subtitle && (

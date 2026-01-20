@@ -56,13 +56,13 @@ const HeroServiceTiles = ({ tiles = defaultTiles, theme = "light" }: HeroService
   const renderIcon = (icon: string, className: string) => {
     switch (icon) {
       case "hajj":
-        return <MakkahIcon size={32} className={className} />;
+        return <MakkahIcon size={24} className={className} />;
       case "umrah":
-        return <Building2 className={`w-8 h-8 ${className}`} />;
+        return <Building2 className={`w-6 h-6 ${className}`} />;
       case "visa":
-        return <Plane className={`w-8 h-8 ${className}`} />;
+        return <Plane className={`w-6 h-6 ${className}`} />;
       default:
-        return <MakkahIcon size={32} className={className} />;
+        return <MakkahIcon size={24} className={className} />;
     }
   };
 
@@ -89,7 +89,7 @@ const HeroServiceTiles = ({ tiles = defaultTiles, theme = "light" }: HeroService
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex flex-wrap justify-center gap-4 md:gap-6"
+      className="flex flex-nowrap justify-center gap-3 md:gap-4"
     >
       {tiles.map((tile) => (
         <motion.button
@@ -99,8 +99,8 @@ const HeroServiceTiles = ({ tiles = defaultTiles, theme = "light" }: HeroService
           whileHover={{ scale: 1.05, y: -5 }}
           whileTap={{ scale: 0.98 }}
           className={`
-            relative flex items-center gap-4 px-6 py-4 rounded-2xl border-2 
-            transition-all duration-300 shadow-lg hover:shadow-xl
+            relative flex items-center gap-3 px-4 py-3 rounded-xl border 
+            transition-all duration-300 shadow-md hover:shadow-lg
             ${theme === "light" 
               ? tile.bgColor 
               : "bg-white/10 hover:bg-white/15 border-white/20 backdrop-blur-md"
@@ -109,7 +109,7 @@ const HeroServiceTiles = ({ tiles = defaultTiles, theme = "light" }: HeroService
         >
           {/* Icon Container */}
           <div className={`
-            w-14 h-14 rounded-xl flex items-center justify-center
+            w-10 h-10 rounded-lg flex items-center justify-center
             ${theme === "light" 
               ? "bg-white shadow-sm" 
               : "bg-white/10"
@@ -121,13 +121,13 @@ const HeroServiceTiles = ({ tiles = defaultTiles, theme = "light" }: HeroService
           {/* Text Content */}
           <div className="text-left">
             <h3 className={`
-              font-semibold text-base md:text-lg
+              font-semibold text-sm md:text-base
               ${theme === "light" ? "text-foreground" : "text-white"}
             `}>
               {tile.title}
             </h3>
             <p className={`
-              text-sm
+              text-xs
               ${theme === "light" ? "text-muted-foreground" : "text-white/70"}
             `}>
               {tile.subtitle}
