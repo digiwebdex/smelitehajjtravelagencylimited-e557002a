@@ -126,27 +126,27 @@ const Header = () => {
       <header className={`fixed left-0 right-0 z-50 bg-card/95 backdrop-blur-md shadow-elegant transition-all duration-300 ${isScrolled ? 'shadow-lg' : ''} ${showAnnouncement ? 'top-[36px]' : 'top-0'}`}>
         {/* Top Bar - Hide when scrolled */}
         <div className={`bg-primary text-primary-foreground overflow-hidden transition-all duration-300 ${isScrolled ? 'h-0 py-0' : 'h-auto py-2'}`}>
-          <div className="container flex flex-col sm:flex-row justify-between items-center gap-1 sm:gap-2 text-sm">
-            <div className="flex items-center gap-4 sm:gap-6">
-              <a href={`tel:${contactDetails.phone.replace(/\s/g, '')}`} className="flex items-center gap-1.5 hover:text-secondary transition-colors">
-                <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="hidden md:inline">{contactDetails.phone}</span>
+          <div className="container flex justify-between items-center text-sm">
+            <div className="flex items-center gap-6">
+              <a href={`tel:${contactDetails.phone.replace(/\s/g, '')}`} className="flex items-center gap-2 hover:text-secondary transition-colors">
+                <Phone className="w-4 h-4" />
+                <span className="hidden sm:inline">{contactDetails.phone}</span>
               </a>
-              <a href={`mailto:${contactDetails.email}`} className="flex items-center gap-1.5 hover:text-secondary transition-colors">
-                <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="hidden md:inline">{contactDetails.email}</span>
+              <a href={`mailto:${contactDetails.email}`} className="flex items-center gap-2 hover:text-secondary transition-colors">
+                <Mail className="w-4 h-4" />
+                <span className="hidden sm:inline">{contactDetails.email}</span>
               </a>
               <a 
                 href={`https://wa.me/${contactDetails.whatsapp?.replace(/[^0-9]/g, '') || '8801867666888'}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 hover:text-[#25D366] transition-colors"
+                className="flex items-center gap-2 hover:text-[#25D366] transition-colors"
               >
-                <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="hidden md:inline">WhatsApp</span>
+                <MessageCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">WhatsApp</span>
               </a>
             </div>
-            <div className="text-secondary font-medium text-xs sm:text-sm text-center leading-tight">
+            <div className="text-secondary font-medium">
               {companyInfo.description}
             </div>
           </div>
@@ -157,14 +157,14 @@ const Header = () => {
           <div className="flex items-center justify-between">
             <button 
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
-              className="flex items-center gap-2 sm:gap-3 group cursor-pointer"
+              className="flex items-center gap-3 group cursor-pointer"
             >
               <img 
                 src={logoSrc} 
                 alt={companyInfo.name} 
-                className={`object-contain ring-2 ring-primary/20 rounded-lg p-1 bg-white shadow-elegant group-hover:ring-primary/40 transition-all duration-300 ${isScrolled ? 'h-10 w-auto' : 'h-12 sm:h-14 w-auto'}`}
+                className={`object-contain ring-2 ring-primary/20 rounded-lg p-1 bg-white shadow-elegant group-hover:ring-primary/40 transition-all duration-300 ${isScrolled ? 'h-10 w-auto' : 'h-14 w-auto'}`}
               />
-              <span className={`font-calligraphy font-bold text-primary group-hover:text-primary/80 transition-all duration-300 ${isScrolled ? 'text-base sm:text-xl' : 'text-lg sm:text-2xl'}`}>
+              <span className={`font-calligraphy font-bold text-primary hidden sm:inline group-hover:text-primary/80 transition-all duration-300 ${isScrolled ? 'text-xl' : 'text-2xl'}`}>
                 {companyInfo.name}
               </span>
             </button>
@@ -235,40 +235,35 @@ const Header = () => {
             </button>
           </div>
 
-          {/* Mobile Navigation - Only show user actions, not full menu */}
+          {/* Mobile Navigation */}
           {isMenuOpen && (
             <div className="lg:hidden mt-4 pb-4 border-t border-border pt-4 animate-fade-up">
-              <div className="flex flex-col gap-2">
-                <Link to="/track-order" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="outline" className="w-full gap-2">
-                    <MapPin className="w-4 h-4" />
-                    Track Order
-                  </Button>
-                </Link>
-                {user && (
-                  <>
-                    <Button variant="outline" className="w-full gap-2" onClick={() => { navigate("/my-bookings"); setIsMenuOpen(false); }}>
-                      My Bookings
-                    </Button>
-                    {isAdmin && (
-                      <Button variant="outline" className="w-full gap-2" onClick={() => { navigate("/admin"); setIsMenuOpen(false); }}>
-                        <LayoutDashboard className="w-4 h-4" />
-                        Admin Dashboard
-                      </Button>
-                    )}
-                    <Button variant="ghost" className="w-full gap-2 text-destructive" onClick={handleSignOut}>
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </Button>
-                  </>
-                )}
-                {appearance.show_book_now_button !== false && (
-                  <a href="#hajj" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="bg-gradient-primary w-full">
-                      Book Now
-                    </Button>
+              <div className="flex flex-col gap-4">
+                {menuItems.map((link) => (
+                  <a
+                    key={link.id}
+                    href={link.href}
+                    className="text-foreground hover:text-primary font-medium py-2"
+                    onClick={(e) => handleSmoothScroll(e, link.href)}
+                  >
+                    {link.label}
                   </a>
-                )}
+                ))}
+                <div className="flex flex-col gap-2 mt-4">
+                  <Link to="/track-order" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="outline" className="w-full gap-2">
+                      <MapPin className="w-4 h-4" />
+                      Track Order
+                    </Button>
+                  </Link>
+                  {appearance.show_book_now_button !== false && (
+                    <a href="#hajj">
+                      <Button className="bg-gradient-primary w-full">
+                        Book Now
+                      </Button>
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           )}
