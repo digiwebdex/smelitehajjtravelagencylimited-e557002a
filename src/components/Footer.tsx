@@ -302,25 +302,33 @@ const Footer = () => {
                       </div>
                     </li>
                   )}
-                  {/* Second group - remaining phones */}
+                  {/* Second group - remaining phones (2 per line with comma) */}
                   {displayPhones.length > 2 && (
                     <li className="flex items-start gap-3">
                       <div className="w-10 h-10 bg-primary-foreground/10 rounded-lg flex items-center justify-center flex-shrink-0">
                         <Phone className="w-5 h-5 text-secondary" />
                       </div>
-                      <div className="text-primary-foreground/80 text-sm pt-2">
-                        {displayPhones.slice(2).map((phone, index, arr) => (
-                          <span key={index}>
-                            <a 
-                              href={`tel:${phone.replace(/\s/g, '')}`}
-                              className="hover:text-secondary transition-colors"
-                            >
-                              {phone}
-                            </a>
-                            {index < arr.length - 1 && <span className="text-primary-foreground/50">, </span>}
-                            {(index + 1) % 2 === 0 && index < arr.length - 1 && <br />}
-                          </span>
-                        ))}
+                      <div className="text-primary-foreground/80 text-sm pt-2 space-y-1">
+                        {/* Group remaining phones in pairs */}
+                        {Array.from({ length: Math.ceil(displayPhones.slice(2).length / 2) }).map((_, pairIndex) => {
+                          const startIdx = pairIndex * 2;
+                          const pair = displayPhones.slice(2).slice(startIdx, startIdx + 2);
+                          return (
+                            <div key={pairIndex}>
+                              {pair.map((phone, idx) => (
+                                <span key={idx}>
+                                  <a 
+                                    href={`tel:${phone.replace(/\s/g, '')}`}
+                                    className="hover:text-secondary transition-colors"
+                                  >
+                                    {phone}
+                                  </a>
+                                  {idx < pair.length - 1 && <span className="text-primary-foreground/50">, </span>}
+                                </span>
+                              ))}
+                            </div>
+                          );
+                        })}
                       </div>
                     </li>
                   )}
