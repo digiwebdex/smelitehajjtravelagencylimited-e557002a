@@ -397,40 +397,6 @@ const HeroSection = () => {
         </div>
       )}
 
-      {/* Premium Navigation Controls */}
-      {slides.length > 1 && (
-        <>
-          {/* Left Arrow */}
-          <motion.button
-            onClick={goToPrevious}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            className={`absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-full backdrop-blur-md border flex items-center justify-center transition-all duration-300 group
-              ${isLight 
-                ? "bg-white/80 border-slate-200 text-foreground hover:bg-white hover:border-emerald-300" 
-                : "bg-primary-foreground/5 border-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/15 hover:border-secondary/30"
-              }`}
-            aria-label="Previous slide"
-          >
-            <ChevronLeft className={`w-6 h-6 ${isLight ? "group-hover:text-emerald-600" : "group-hover:text-secondary"} transition-colors`} />
-          </motion.button>
-
-          {/* Right Arrow */}
-          <motion.button
-            onClick={goToNext}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            className={`absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-full backdrop-blur-md border flex items-center justify-center transition-all duration-300 group
-              ${isLight 
-                ? "bg-white/80 border-slate-200 text-foreground hover:bg-white hover:border-emerald-300" 
-                : "bg-primary-foreground/5 border-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/15 hover:border-secondary/30"
-              }`}
-            aria-label="Next slide"
-          >
-            <ChevronRight className={`w-6 h-6 ${isLight ? "group-hover:text-emerald-600" : "group-hover:text-secondary"} transition-colors`} />
-          </motion.button>
-        </>
-      )}
 
 
       {/* Content - Conditional Layout */}
