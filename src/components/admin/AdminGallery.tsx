@@ -75,6 +75,16 @@ interface GallerySettings {
   video_speed: number | null;
 }
 
+interface GalleryVideo {
+  id: string;
+  title: string;
+  video_url: string;
+  thumbnail_url: string | null;
+  description: string | null;
+  order_index: number;
+  is_active: boolean;
+}
+
 interface SectionHeader {
   badge_text: string;
   arabic_text: string;
@@ -82,11 +92,14 @@ interface SectionHeader {
 
 const AdminGallery = () => {
   const [images, setImages] = useState<GalleryImage[]>([]);
+  const [videos, setVideos] = useState<GalleryVideo[]>([]);
   const [settings, setSettings] = useState<GallerySettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
   const [editingImage, setEditingImage] = useState<GalleryImage | null>(null);
+  const [editingVideo, setEditingVideo] = useState<GalleryVideo | null>(null);
   
   // Section header state
   const [sectionHeader, setSectionHeader] = useState<SectionHeader>({
@@ -100,8 +113,15 @@ const AdminGallery = () => {
   const [altText, setAltText] = useState("");
   const [caption, setCaption] = useState("");
   
+  // Form state for video
+  const [videoTitle, setVideoTitle] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoThumbnail, setVideoThumbnail] = useState("");
+  const [videoDescription, setVideoDescription] = useState("");
+  
   const { uploadImage, uploading } = useImageUpload({ bucket: "admin-uploads", folder: "gallery" });
   const [videoUploading, setVideoUploading] = useState(false);
+  const [thumbnailUploading, setThumbnailUploading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -172,6 +192,16 @@ const AdminGallery = () => {
 
       if (imagesData) {
         setImages(imagesData);
+      }
+
+      // Fetch videos (all, including inactive for admin)
+      const { data: videosData } = await supabase
+        .from("gallery_videos")
+        .select("*")
+        .order("order_index");
+
+      if (videosData) {
+        setVideos(videosData);
       }
     } catch (error) {
       console.error("Error fetching gallery data:", error);
@@ -355,12 +385,215 @@ const AdminGallery = () => {
     setEditingImage(null);
   };
 
+  const resetVideoForm = () => {
+    setVideoTitle("");
+    setVideoUrl("");
+    setVideoThumbnail("");
+    setVideoDescription("");
+    setEditingVideo(null);
+  };
+
   const openEditDialog = (image: GalleryImage) => {
     setEditingImage(image);
     setImageUrl(image.image_url);
     setAltText(image.alt_text);
     setCaption(image.caption || "");
     setDialogOpen(true);
+  };
+
+  const openEditVideoDialog = (video: GalleryVideo) => {
+    setEditingVideo(video);
+    setVideoTitle(video.title);
+    setVideoUrl(video.video_url);
+    setVideoThumbnail(video.thumbnail_url || "");
+    setVideoDescription(video.description || "");
+    setVideoDialogOpen(true);
+  };
+
+  const handleVideoFileUpload = async (file: File) => {
+    if (!file.type.startsWith('video/')) {
+      toast.error("Please select a video file");
+      return;
+    }
+    
+    setVideoUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `gallery-videos/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('admin-uploads')
+        .upload(fileName, file, { upsert: true });
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('admin-uploads')
+        .getPublicUrl(fileName);
+      
+      setVideoUrl(publicUrl);
+      toast.success("Video uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading video:", error);
+      toast.error("Failed to upload video");
+    } finally {
+      setVideoUploading(false);
+    }
+  };
+
+  const handleThumbnailUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please select an image file");
+      return;
+    }
+    
+    setThumbnailUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `gallery-thumbnails/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('admin-uploads')
+        .upload(fileName, file, { upsert: true });
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('admin-uploads')
+        .getPublicUrl(fileName);
+      
+      setVideoThumbnail(publicUrl);
+      toast.success("Thumbnail uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading thumbnail:", error);
+      toast.error("Failed to upload thumbnail");
+    } finally {
+      setThumbnailUploading(false);
+    }
+  };
+
+  const handleSubmitVideo = async () => {
+    if (!videoTitle.trim() || !videoUrl.trim()) {
+      toast.error("Please provide a title and video URL");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      if (editingVideo) {
+        const { error } = await supabase
+          .from("gallery_videos")
+          .update({
+            title: videoTitle,
+            video_url: videoUrl,
+            thumbnail_url: videoThumbnail || null,
+            description: videoDescription || null,
+          })
+          .eq("id", editingVideo.id);
+
+        if (error) throw error;
+        toast.success("Video updated successfully");
+      } else {
+        const maxOrder = videos.length > 0 ? Math.max(...videos.map(v => v.order_index)) : -1;
+        const { error } = await supabase
+          .from("gallery_videos")
+          .insert({
+            title: videoTitle,
+            video_url: videoUrl,
+            thumbnail_url: videoThumbnail || null,
+            description: videoDescription || null,
+            order_index: maxOrder + 1,
+          });
+
+        if (error) throw error;
+        toast.success("Video added successfully");
+      }
+      
+      resetVideoForm();
+      setVideoDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      console.error("Error saving video:", error);
+      toast.error("Failed to save video");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteVideo = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this video?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("gallery_videos")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      toast.success("Video deleted successfully");
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting video:", error);
+      toast.error("Failed to delete video");
+    }
+  };
+
+  const toggleVideoActive = async (video: GalleryVideo) => {
+    try {
+      const { error } = await supabase
+        .from("gallery_videos")
+        .update({ is_active: !video.is_active })
+        .eq("id", video.id);
+
+      if (error) throw error;
+      fetchData();
+    } catch (error) {
+      console.error("Error toggling video:", error);
+      toast.error("Failed to update video");
+    }
+  };
+
+  const moveVideo = async (video: GalleryVideo, direction: "up" | "down") => {
+    const currentIndex = videos.findIndex(v => v.id === video.id);
+    const swapIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+    
+    if (swapIndex < 0 || swapIndex >= videos.length) return;
+
+    const swapVideo = videos[swapIndex];
+    
+    try {
+      await supabase.from("gallery_videos").update({ order_index: swapVideo.order_index }).eq("id", video.id);
+      await supabase.from("gallery_videos").update({ order_index: video.order_index }).eq("id", swapVideo.id);
+      fetchData();
+    } catch (error) {
+      console.error("Error reordering videos:", error);
+      toast.error("Failed to reorder videos");
+    }
+  };
+
+  const addSampleVideo = async (sampleVideo: typeof SAMPLE_VIDEOS[0]) => {
+    setSaving(true);
+    try {
+      const maxOrder = videos.length > 0 ? Math.max(...videos.map(v => v.order_index)) : -1;
+      const { error } = await supabase
+        .from("gallery_videos")
+        .insert({
+          title: sampleVideo.name,
+          video_url: sampleVideo.url,
+          thumbnail_url: null,
+          description: null,
+          order_index: maxOrder + 1,
+        });
+
+      if (error) throw error;
+      toast.success(`"${sampleVideo.name}" added to gallery`);
+      fetchData();
+    } catch (error) {
+      console.error("Error adding sample video:", error);
+      toast.error("Failed to add video");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -780,6 +1013,248 @@ const AdminGallery = () => {
               </TableBody>
             </Table>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Videos Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Video className="h-5 w-5" />
+              Gallery Videos
+            </CardTitle>
+            <CardDescription>
+              Manage your gallery videos - add, edit, reorder, or remove
+            </CardDescription>
+          </div>
+          <Dialog open={videoDialogOpen} onOpenChange={(open) => { setVideoDialogOpen(open); if (!open) resetVideoForm(); }}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Video
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>{editingVideo ? "Edit Video" : "Add New Video"}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="videoTitle">Video Title *</Label>
+                  <Input
+                    id="videoTitle"
+                    value={videoTitle}
+                    onChange={(e) => setVideoTitle(e.target.value)}
+                    placeholder="Enter video title"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Video File *</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={videoUrl}
+                      onChange={(e) => setVideoUrl(e.target.value)}
+                      placeholder="Enter video URL or upload"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={videoUploading}
+                      onClick={() => document.getElementById("custom-video-upload")?.click()}
+                    >
+                      {videoUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    </Button>
+                    <input
+                      id="custom-video-upload"
+                      type="file"
+                      accept="video/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleVideoFileUpload(file);
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Thumbnail Image (Optional)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={videoThumbnail}
+                      onChange={(e) => setVideoThumbnail(e.target.value)}
+                      placeholder="Enter thumbnail URL or upload"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={thumbnailUploading}
+                      onClick={() => document.getElementById("thumbnail-upload")?.click()}
+                    >
+                      {thumbnailUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+                    </Button>
+                    <input
+                      id="thumbnail-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleThumbnailUpload(file);
+                      }}
+                    />
+                  </div>
+                  {videoThumbnail && (
+                    <img src={videoThumbnail} alt="Thumbnail preview" className="w-full h-32 object-cover rounded-lg mt-2" />
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="videoDescription">Description (Optional)</Label>
+                  <Textarea
+                    id="videoDescription"
+                    value={videoDescription}
+                    onChange={(e) => setVideoDescription(e.target.value)}
+                    placeholder="Enter video description"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" onClick={() => { setVideoDialogOpen(false); resetVideoForm(); }}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSubmitVideo} disabled={saving || !videoTitle || !videoUrl}>
+                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    {editingVideo ? "Update" : "Add"} Video
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Quick Add Sample Videos */}
+          <div className="space-y-3">
+            <Label className="flex items-center gap-2">
+              <Play className="h-4 w-4" />
+              Quick Add Sample Videos
+            </Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+              {SAMPLE_VIDEOS.map((video) => (
+                <Button
+                  key={video.id}
+                  type="button"
+                  variant="outline"
+                  className="h-auto py-3 flex flex-col gap-1 text-xs"
+                  onClick={() => addSampleVideo(video)}
+                  disabled={saving}
+                >
+                  <span className="text-xl">{video.thumbnail}</span>
+                  <span className="truncate w-full">{video.name}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            {videos.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Video className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No videos in the gallery yet.</p>
+                <p className="text-sm">Click "Add Video" or use the sample videos above.</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">Order</TableHead>
+                    <TableHead className="w-24">Preview</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="w-24">Active</TableHead>
+                    <TableHead className="w-32">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {videos.map((video, index) => (
+                    <TableRow key={video.id}>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            disabled={index === 0}
+                            onClick={() => moveVideo(video, "up")}
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            disabled={index === videos.length - 1}
+                            onClick={() => moveVideo(video, "down")}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                          {video.thumbnail_url ? (
+                            <img
+                              src={video.thumbnail_url}
+                              alt={video.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Video className="h-6 w-6 text-muted-foreground" />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[150px] truncate font-medium">
+                        {video.title}
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate">
+                        {video.description || <span className="text-muted-foreground italic">No description</span>}
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={video.is_active}
+                          onCheckedChange={() => toggleVideoActive(video)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditVideoDialog(video)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => handleDeleteVideo(video.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
