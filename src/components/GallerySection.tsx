@@ -38,44 +38,15 @@ interface GallerySettings {
 type ViewMode = "grid" | "carousel";
 type ContentType = "images" | "videos";
 
-const SAMPLE_VIDEOS = [
-  {
-    id: "mecca-aerial",
-    title: "Mecca Aerial View",
-    video_url: "https://videos.pexels.com/video-files/3773485/3773485-uhd_2560_1440_30fps.mp4",
-    thumbnail: "https://images.pexels.com/videos/3773485/free-video-3773485.jpg?auto=compress&cs=tinysrgb&w=600"
-  },
-  {
-    id: "desert-sunset",
-    title: "Desert Sunset",
-    video_url: "https://videos.pexels.com/video-files/857195/857195-hd_1920_1080_25fps.mp4",
-    thumbnail: "https://images.pexels.com/videos/857195/free-video-857195.jpg?auto=compress&cs=tinysrgb&w=600"
-  },
-  {
-    id: "mosque-interior",
-    title: "Mosque Interior",
-    video_url: "https://videos.pexels.com/video-files/5721604/5721604-uhd_2732_1440_25fps.mp4",
-    thumbnail: "https://images.pexels.com/videos/5721604/pexels-photo-5721604.jpeg?auto=compress&cs=tinysrgb&w=600"
-  },
-  {
-    id: "clouds-sky",
-    title: "Peaceful Clouds",
-    video_url: "https://videos.pexels.com/video-files/857251/857251-hd_1920_1080_25fps.mp4",
-    thumbnail: "https://images.pexels.com/videos/857251/free-video-857251.jpg?auto=compress&cs=tinysrgb&w=600"
-  },
-  {
-    id: "golden-particles",
-    title: "Golden Particles",
-    video_url: "https://videos.pexels.com/video-files/3129671/3129671-uhd_2560_1440_25fps.mp4",
-    thumbnail: "https://images.pexels.com/videos/3129671/free-video-3129671.jpg?auto=compress&cs=tinysrgb&w=600"
-  },
-  {
-    id: "stars-night",
-    title: "Starry Night Sky",
-    video_url: "https://videos.pexels.com/video-files/1851190/1851190-hd_1920_1080_25fps.mp4",
-    thumbnail: "https://images.pexels.com/videos/1851190/free-video-1851190.jpg?auto=compress&cs=tinysrgb&w=600"
-  }
-];
+interface GalleryVideo {
+  id: string;
+  title: string;
+  video_url: string;
+  thumbnail_url: string | null;
+  description: string | null;
+  order_index: number;
+  is_active: boolean;
+}
 
 interface SectionHeader {
   badge_text: string;
@@ -84,12 +55,13 @@ interface SectionHeader {
 
 const GallerySection = () => {
   const [images, setImages] = useState<GalleryImage[]>([]);
+  const [videos, setVideos] = useState<GalleryVideo[]>([]);
   const [settings, setSettings] = useState<GallerySettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [contentType, setContentType] = useState<ContentType>("images");
-  const [selectedVideo, setSelectedVideo] = useState<typeof SAMPLE_VIDEOS[0] | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<GalleryVideo | null>(null);
   const [isAutoplayPaused, setIsAutoplayPaused] = useState(false);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -183,6 +155,16 @@ const GallerySection = () => {
 
       if (imagesData) {
         setImages(imagesData);
+      }
+
+      const { data: videosData } = await supabase
+        .from("gallery_videos")
+        .select("*")
+        .eq("is_active", true)
+        .order("order_index");
+
+      if (videosData) {
+        setVideos(videosData);
       }
     } catch (error) {
       console.error("Error fetching gallery data:", error);
@@ -511,44 +493,57 @@ const GallerySection = () => {
           {/* Videos Grid */}
           {contentType === "videos" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-8">
-              {SAMPLE_VIDEOS.map((video, index) => (
-                <motion.div
-                  key={video.id}
-                  initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ 
-                    duration: 0.5, 
-                    delay: index * 0.08,
-                    ease: [0.25, 0.46, 0.45, 0.94]
-                  }}
-                  whileHover={{ y: -8 }}
-                  className="group relative aspect-video overflow-hidden rounded-2xl cursor-pointer bg-muted shadow-elegant"
-                  onClick={() => setSelectedVideo(video)}
-                >
-                  {/* Thumbnail */}
-                  <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  
-                  {/* Play Button Overlay */}
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-all duration-300 flex items-center justify-center">
-                    <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Play className="w-8 h-8 text-white ml-1" fill="white" />
+              {videos.length === 0 ? (
+                <div className="col-span-full text-center py-12 text-muted-foreground">
+                  <Video className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No videos available yet.</p>
+                </div>
+              ) : (
+                videos.map((video, index) => (
+                  <motion.div
+                    key={video.id}
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ 
+                      duration: 0.5, 
+                      delay: index * 0.08,
+                      ease: [0.25, 0.46, 0.45, 0.94]
+                    }}
+                    whileHover={{ y: -8 }}
+                    className="group relative aspect-video overflow-hidden rounded-2xl cursor-pointer bg-muted shadow-elegant"
+                    onClick={() => setSelectedVideo(video)}
+                  >
+                    {/* Thumbnail */}
+                    {video.thumbnail_url ? (
+                      <img
+                        src={video.thumbnail_url}
+                        alt={video.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                        <Video className="w-16 h-16 text-muted-foreground/50" />
+                      </div>
+                    )}
+                    
+                    {/* Play Button Overlay */}
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-all duration-300 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Play className="w-8 h-8 text-white ml-1" fill="white" />
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Title */}
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                    <p className="text-white font-medium text-sm">{video.title}</p>
-                  </div>
-                  
-                  {/* Hover Border Glow */}
-                  <div className="absolute inset-0 rounded-2xl ring-2 ring-transparent group-hover:ring-secondary/50 transition-all duration-500" />
-                </motion.div>
-              ))}
+                    
+                    {/* Title */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                      <p className="text-white font-medium text-sm">{video.title}</p>
+                    </div>
+                    
+                    {/* Hover Border Glow */}
+                    <div className="absolute inset-0 rounded-2xl ring-2 ring-transparent group-hover:ring-secondary/50 transition-all duration-500" />
+                  </motion.div>
+                ))
+              )}
             </div>
           )}
 
