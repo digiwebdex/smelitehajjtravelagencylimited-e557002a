@@ -39,29 +39,37 @@ interface PackageDetailsModalProps {
 
 // Helper component to format description text with proper sections
 const FormattedDescription = ({ text }: { text: string }) => {
-  // Parse the text into sections
-  const sections = text.split(/\*\*([^*]+)\*\*/g).filter(Boolean);
+  // Split by section headers (text wrapped in **)
+  const parts = text.split(/\*\*([^*]+)\*\*/g).filter(Boolean);
   
-  const parsedSections: { title: string; items: string[] }[] = [];
-  let currentSection: { title: string; items: string[] } | null = null;
+  const parsedSections: { title: string; content: { type: 'bullet' | 'text'; value: string }[] }[] = [];
+  let currentSection: { title: string; content: { type: 'bullet' | 'text'; value: string }[] } | null = null;
   
-  sections.forEach((section, index) => {
-    const trimmed = section.trim();
+  parts.forEach((part, index) => {
+    const trimmed = part.trim();
     if (!trimmed) return;
     
-    // Check if this is a section title (odd indices after split are titles)
-    if (index % 2 === 1 || trimmed.endsWith(':')) {
+    // Odd indices after split are the section titles
+    if (index % 2 === 1) {
       // Save previous section
       if (currentSection) {
         parsedSections.push(currentSection);
       }
-      currentSection = { title: trimmed.replace(/:$/, ''), items: [] };
+      currentSection = { title: trimmed.replace(/:$/, ''), content: [] };
     } else if (currentSection) {
-      // Parse bullet points
-      const items = trimmed.split('•').filter(item => item.trim());
-      items.forEach(item => {
-        currentSection!.items.push(item.trim());
-      });
+      // This is content - check if it has bullet points
+      if (trimmed.includes('•')) {
+        const items = trimmed.split('•').filter(item => item.trim());
+        items.forEach(item => {
+          currentSection!.content.push({ type: 'bullet', value: item.trim() });
+        });
+      } else {
+        // Plain text paragraph - split by newlines for multiple paragraphs
+        const paragraphs = trimmed.split('\n').filter(p => p.trim());
+        paragraphs.forEach(p => {
+          currentSection!.content.push({ type: 'text', value: p.trim() });
+        });
+      }
     }
   });
   
@@ -71,23 +79,27 @@ const FormattedDescription = ({ text }: { text: string }) => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {parsedSections.map((section, idx) => (
-        <div key={idx} className="bg-muted/30 rounded-lg p-4">
-          <h5 className="font-semibold text-primary text-sm mb-2 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+        <div key={idx} className="bg-muted/30 rounded-xl p-4 border border-border/50">
+          <h5 className="font-semibold text-primary text-sm mb-3 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-gradient-to-r from-primary to-secondary"></span>
             {section.title}
           </h5>
-          {section.items.length > 0 ? (
-            <ul className="space-y-1.5 ml-4">
-              {section.items.map((item, itemIdx) => (
-                <li key={itemIdx} className="text-sm text-foreground/80 flex items-start gap-2">
-                  <span className="text-primary mt-1">•</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          <div className="space-y-2 ml-4">
+            {section.content.map((item, itemIdx) => (
+              item.type === 'bullet' ? (
+                <div key={itemIdx} className="flex items-start gap-2 text-sm text-foreground/85">
+                  <span className="text-secondary mt-0.5 font-bold">•</span>
+                  <span>{item.value}</span>
+                </div>
+              ) : (
+                <p key={itemIdx} className="text-sm text-foreground/85 leading-relaxed">
+                  {item.value}
+                </p>
+              )
+            ))}
+          </div>
         </div>
       ))}
     </div>
