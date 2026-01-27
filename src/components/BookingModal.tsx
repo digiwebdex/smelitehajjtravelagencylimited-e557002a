@@ -245,7 +245,11 @@ const BookingModal = ({ isOpen, onClose, package_info }: BookingModalProps) => {
     const totalPrice = package_info.price * formData.passengerCount;
     const isInstallment = paymentType === "installment";
     
-    const { data: bookingData, error } = await supabase.from("bookings").insert({
+    // Generate booking ID client-side to avoid SELECT after INSERT (RLS issue for guests)
+    const bookingId = crypto.randomUUID();
+    
+    const { error } = await supabase.from("bookings").insert({
+      id: bookingId,
       package_id: package_info.id,
       passenger_count: formData.passengerCount,
       travel_date: formData.travelDate || null,
@@ -258,7 +262,7 @@ const BookingModal = ({ isOpen, onClose, package_info }: BookingModalProps) => {
       payment_method: isInstallment ? "installment" : formData.paymentMethod,
       payment_status: isInstallment ? "emi_pending" : (formData.paymentMethod === 'cash' ? 'pending_cash' : (formData.paymentMethod === 'bank_transfer' ? 'pending_verification' : 'pending')),
       bank_transaction_number: formData.paymentMethod === "bank_transfer" ? bankTransactionNumber.trim() : null,
-    }).select("id").single();
+    });
 
     if (error) {
       toast({
@@ -271,7 +275,7 @@ const BookingModal = ({ isOpen, onClose, package_info }: BookingModalProps) => {
     }
 
     // Create installment plan if selected
-    if (isInstallment && bookingData?.id) {
+    if (isInstallment) {
       const remaining = totalPrice - advanceAmount;
       const installmentAmount = Math.ceil(remaining / numberOfInstallments);
 
@@ -279,7 +283,7 @@ const BookingModal = ({ isOpen, onClose, package_info }: BookingModalProps) => {
       const { data: emiData, error: emiError } = await supabase
         .from("emi_payments")
         .insert({
-          booking_id: bookingData.id,
+          booking_id: bookingId,
           total_amount: totalPrice,
           advance_amount: advanceAmount,
           number_of_emis: numberOfInstallments,
@@ -316,7 +320,7 @@ const BookingModal = ({ isOpen, onClose, package_info }: BookingModalProps) => {
         // Send installment plan notification
         supabase.functions.invoke("send-emi-notification", {
           body: {
-            bookingId: bookingData.id,
+            bookingId: bookingId,
             notificationType: "emi_plan_created",
             amount: installmentAmount,
             totalEmis: numberOfInstallments,
@@ -325,77 +329,74 @@ const BookingModal = ({ isOpen, onClose, package_info }: BookingModalProps) => {
       }
     }
 
-    // Process payment based on selected method
-    if (bookingData?.id) {
-      // Send booking confirmation notifications in background
-      supabase.functions.invoke("send-booking-notification", {
-        body: { bookingId: bookingData.id }
-      }).catch(err => console.error("Notification error:", err));
+    // Send booking confirmation notifications in background
+    supabase.functions.invoke("send-booking-notification", {
+      body: { bookingId: bookingId }
+    }).catch(err => console.error("Notification error:", err));
 
-      // For installment bookings, redirect to confirmation page
-      if (isInstallment) {
-        onClose();
-        navigate(`/booking/confirmation/${bookingData.id}`);
-        return;
-      }
+    // For installment bookings, redirect to confirmation page
+    if (isInstallment) {
+      onClose();
+      navigate(`/booking/confirmation/${bookingId}`);
+      return;
+    }
 
-      // Handle bank transfer - upload screenshot
-      if (formData.paymentMethod === "bank_transfer" && bankScreenshot) {
-        const fileExt = bankScreenshot.name.split(".").pop();
-        const fileName = `${bookingData.id}/bank-transfer-${Date.now()}.${fileExt}`;
+    // Handle bank transfer - upload screenshot
+    if (formData.paymentMethod === "bank_transfer" && bankScreenshot) {
+      const fileExt = bankScreenshot.name.split(".").pop();
+      const fileName = `${bookingId}/bank-transfer-${Date.now()}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from("booking-documents")
-          .upload(fileName, bankScreenshot);
+      const { error: uploadError } = await supabase.storage
+        .from("booking-documents")
+        .upload(fileName, bankScreenshot);
 
-        if (uploadError) {
-          console.error("Screenshot upload error:", uploadError);
-        } else {
-          // Get public URL and update booking
-          const { data: urlData } = supabase.storage
-            .from("booking-documents")
-            .getPublicUrl(fileName);
-
-          if (urlData?.publicUrl) {
-            await supabase
-              .from("bookings")
-              .update({ bank_transfer_screenshot_url: urlData.publicUrl })
-              .eq("id", bookingData.id);
-          }
-        }
-
-        onClose();
-        navigate(`/booking/confirmation/${bookingData.id}`);
-        return;
-      }
-
-      // For cash payments, redirect to confirmation page
-      if (formData.paymentMethod === "cash") {
-        onClose();
-        navigate(`/booking/confirmation/${bookingData.id}`);
-        return;
-      }
-
-      // Initiate payment for full payment
-      const paymentResult = await initiatePayment({
-        bookingId: bookingData.id,
-        paymentMethod: formData.paymentMethod,
-        amount: totalPrice,
-      });
-
-      if (paymentResult.success) {
-        // For redirect payments, the hook handles the redirect
-        if (!paymentResult.redirectUrl) {
-          resetFormAndClose();
-        }
-        // For online payments, the hook handles the redirect
+      if (uploadError) {
+        console.error("Screenshot upload error:", uploadError);
       } else {
-        toast({
-          title: "Payment Initiation Failed",
-          description: paymentResult.error || "Could not initiate payment. Please try again.",
-          variant: "destructive",
-        });
+        // Get public URL and update booking
+        const { data: urlData } = supabase.storage
+          .from("booking-documents")
+          .getPublicUrl(fileName);
+
+        if (urlData?.publicUrl) {
+          await supabase
+            .from("bookings")
+            .update({ bank_transfer_screenshot_url: urlData.publicUrl })
+            .eq("id", bookingId);
+        }
       }
+
+      onClose();
+      navigate(`/booking/confirmation/${bookingId}`);
+      return;
+    }
+
+    // For cash payments, redirect to confirmation page
+    if (formData.paymentMethod === "cash") {
+      onClose();
+      navigate(`/booking/confirmation/${bookingId}`);
+      return;
+    }
+
+    // Initiate payment for full payment
+    const paymentResult = await initiatePayment({
+      bookingId: bookingId,
+      paymentMethod: formData.paymentMethod,
+      amount: totalPrice,
+    });
+
+    if (paymentResult.success) {
+      // For redirect payments, the hook handles the redirect
+      if (!paymentResult.redirectUrl) {
+        resetFormAndClose();
+      }
+      // For online payments, the hook handles the redirect
+    } else {
+      toast({
+        title: "Payment Initiation Failed",
+        description: paymentResult.error || "Could not initiate payment. Please try again.",
+        variant: "destructive",
+      });
     }
 
     setLoading(false);
