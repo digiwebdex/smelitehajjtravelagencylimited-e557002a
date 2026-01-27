@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, Phone, Mail, User, LogOut, LayoutDashboard, MapPin, MessageCircle } from "lucide-react";
+import { Menu, X, Phone, Mail, User, LogOut, LayoutDashboard, MapPin, MessageCircle, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -11,14 +11,25 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { formatCurrency } from "@/lib/currency";
 import companyLogo from "@/assets/company-logo.jpeg";
+import BookingModal from "./BookingModal";
 
 interface MenuItem {
   id: string;
   label: string;
   href: string;
   order_index: number;
+}
+
+interface PackageItem {
+  id: string;
+  title: string;
+  price: number;
+  type: "hajj" | "umrah";
+  duration_days: number;
 }
 
 const ANNOUNCEMENT_DISMISSED_KEY = "smEliteHajj_announcementDismissed";
@@ -36,6 +47,9 @@ const Header = () => {
   const { companyInfo, contactDetails, appearance } = useSiteSettings();
   const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [packages, setPackages] = useState<PackageItem[]>([]);
+  const [selectedPackage, setSelectedPackage] = useState<PackageItem | null>(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,6 +62,7 @@ const Header = () => {
 
   useEffect(() => {
     fetchMenuItems();
+    fetchPackages();
   }, []);
 
   const fetchMenuItems = async () => {
@@ -71,6 +86,26 @@ const Header = () => {
         { id: "8", label: "Contact", href: "#contact", order_index: 7 },
       ]);
     }
+  };
+
+  const fetchPackages = async () => {
+    const { data } = await supabase
+      .from("packages")
+      .select("id, title, price, type, duration_days")
+      .eq("is_active", true)
+      .eq("show_book_now", true)
+      .order("type")
+      .order("price");
+    
+    if (data) {
+      setPackages(data);
+    }
+  };
+
+  const handleBookPackage = (pkg: PackageItem) => {
+    setSelectedPackage(pkg);
+    setIsBookingModalOpen(true);
+    setIsMenuOpen(false);
   };
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -214,12 +249,51 @@ const Header = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-              {appearance.show_book_now_button !== false && (
-                <a href="#hajj">
-                  <Button className="bg-gradient-primary hover:opacity-90 shadow-gold">
-                    Book Now
-                  </Button>
-                </a>
+              {appearance.show_book_now_button !== false && packages.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button className="bg-gradient-primary hover:opacity-90 shadow-gold">
+                      Book Now
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72 max-h-96 overflow-y-auto">
+                    <DropdownMenuLabel className="text-primary font-semibold">Hajj Packages</DropdownMenuLabel>
+                    {packages.filter(p => p.type === "hajj").map((pkg) => (
+                      <DropdownMenuItem 
+                        key={pkg.id} 
+                        onClick={() => handleBookPackage(pkg)}
+                        className="flex flex-col items-start gap-1 cursor-pointer py-2"
+                      >
+                        <span className="font-medium text-foreground">{pkg.title}</span>
+                        <span className="text-xs text-muted-foreground flex items-center gap-2">
+                          <span>{pkg.duration_days} Days</span>
+                          <span>•</span>
+                          <span className="text-primary font-semibold">{formatCurrency(pkg.price)}</span>
+                        </span>
+                      </DropdownMenuItem>
+                    ))}
+                    {packages.filter(p => p.type === "umrah").length > 0 && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel className="text-primary font-semibold">Umrah Packages</DropdownMenuLabel>
+                        {packages.filter(p => p.type === "umrah").map((pkg) => (
+                          <DropdownMenuItem 
+                            key={pkg.id} 
+                            onClick={() => handleBookPackage(pkg)}
+                            className="flex flex-col items-start gap-1 cursor-pointer py-2"
+                          >
+                            <span className="font-medium text-foreground">{pkg.title}</span>
+                            <span className="text-xs text-muted-foreground flex items-center gap-2">
+                              <span>{pkg.duration_days} Days</span>
+                              <span>•</span>
+                              <span className="text-primary font-semibold">{formatCurrency(pkg.price)}</span>
+                            </span>
+                          </DropdownMenuItem>
+                        ))}
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
 
@@ -269,12 +343,51 @@ const Header = () => {
                       </Button>
                     </>
                   )}
-                  {appearance.show_book_now_button !== false && (
-                    <a href="#hajj" onClick={() => setIsMenuOpen(false)}>
-                      <Button className="bg-gradient-primary w-full">
-                        Book Now
-                      </Button>
-                    </a>
+                  {appearance.show_book_now_button !== false && packages.length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button className="bg-gradient-primary w-full">
+                          Book Now
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="center" className="w-72 max-h-80 overflow-y-auto">
+                        <DropdownMenuLabel className="text-primary font-semibold">Hajj Packages</DropdownMenuLabel>
+                        {packages.filter(p => p.type === "hajj").map((pkg) => (
+                          <DropdownMenuItem 
+                            key={pkg.id} 
+                            onClick={() => handleBookPackage(pkg)}
+                            className="flex flex-col items-start gap-1 cursor-pointer py-2"
+                          >
+                            <span className="font-medium text-foreground">{pkg.title}</span>
+                            <span className="text-xs text-muted-foreground flex items-center gap-2">
+                              <span>{pkg.duration_days} Days</span>
+                              <span>•</span>
+                              <span className="text-primary font-semibold">{formatCurrency(pkg.price)}</span>
+                            </span>
+                          </DropdownMenuItem>
+                        ))}
+                        {packages.filter(p => p.type === "umrah").length > 0 && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel className="text-primary font-semibold">Umrah Packages</DropdownMenuLabel>
+                            {packages.filter(p => p.type === "umrah").map((pkg) => (
+                              <DropdownMenuItem 
+                                key={pkg.id} 
+                                onClick={() => handleBookPackage(pkg)}
+                                className="flex flex-col items-start gap-1 cursor-pointer py-2"
+                              >
+                                <span className="font-medium text-foreground">{pkg.title}</span>
+                                <span className="text-xs text-muted-foreground flex items-center gap-2">
+                                  <span>{pkg.duration_days} Days</span>
+                                  <span>•</span>
+                                  <span className="text-primary font-semibold">{formatCurrency(pkg.price)}</span>
+                                </span>
+                              </DropdownMenuItem>
+                            ))}
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                 </div>
               </div>
@@ -282,6 +395,24 @@ const Header = () => {
           )}
         </nav>
       </header>
+
+      {/* Booking Modal */}
+      {selectedPackage && (
+        <BookingModal
+          isOpen={isBookingModalOpen}
+          onClose={() => {
+            setIsBookingModalOpen(false);
+            setSelectedPackage(null);
+          }}
+          package_info={{
+            id: selectedPackage.id,
+            title: selectedPackage.title,
+            price: selectedPackage.price,
+            type: selectedPackage.type,
+            duration_days: selectedPackage.duration_days,
+          }}
+        />
+      )}
     </>
   );
 };
