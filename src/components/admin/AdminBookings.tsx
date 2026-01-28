@@ -632,8 +632,14 @@ const AdminBookings = ({ onUpdate }: AdminBookingsProps) => {
                     <TableCell className="text-xs whitespace-nowrap">
                       {format(new Date(booking.created_at), "MMM dd, yyyy")}
                     </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {booking.id.slice(0, 8).toUpperCase()}
+                    <TableCell>
+                      <Button
+                        variant="link"
+                        className="font-mono text-xs p-0 h-auto text-primary hover:underline"
+                        onClick={() => setSelectedBooking(booking)}
+                      >
+                        {booking.id.slice(0, 8).toUpperCase()}
+                      </Button>
                     </TableCell>
                     <TableCell>
                       <div>
@@ -770,91 +776,174 @@ const AdminBookings = ({ onUpdate }: AdminBookingsProps) => {
 
       {/* Booking Details Dialog */}
       <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Booking Details</DialogTitle>
-            <DialogDescription>
-              ID: {selectedBooking?.id.slice(0, 8).toUpperCase()}
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              Booking Details
+            </DialogTitle>
+            <DialogDescription className="font-mono">
+              ID: {selectedBooking?.id.slice(0, 8).toUpperCase()} • Created: {selectedBooking && format(new Date(selectedBooking.created_at), "MMM dd, yyyy 'at' hh:mm a")}
             </DialogDescription>
           </DialogHeader>
           {selectedBooking && (() => {
             const customerInfo = getCustomerInfo(selectedBooking);
+            const emiInfo = emiPayments[selectedBooking.id];
             return (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="space-y-4"
             >
+              {/* Customer & Package Info */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm text-muted-foreground">Customer</p>
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="text-sm font-medium text-muted-foreground">Customer Information</p>
                     {customerInfo.isGuest && (
                       <Badge variant="outline" className="text-xs">Guest</Badge>
                     )}
                   </div>
-                  <p className="font-medium">{customerInfo.name}</p>
-                  {customerInfo.email && <p className="text-sm">{customerInfo.email}</p>}
-                  {customerInfo.phone && <p className="text-sm">{customerInfo.phone}</p>}
+                  <p className="font-semibold text-lg">{customerInfo.name}</p>
+                  {customerInfo.email && <p className="text-sm text-muted-foreground">{customerInfo.email}</p>}
+                  {customerInfo.phone && <p className="text-sm text-muted-foreground">{customerInfo.phone}</p>}
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Package</p>
-                  <p className="font-medium">{selectedBooking.packages.title}</p>
-                  <p className="text-sm capitalize">{selectedBooking.packages.type}</p>
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Package</p>
+                  <p className="font-semibold text-lg">{selectedBooking.packages.title}</p>
+                  <p className="text-sm text-muted-foreground capitalize">{selectedBooking.packages.type}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Passengers</p>
-                  <p className="font-medium">{selectedBooking.passenger_count}</p>
+              {/* Booking Info Grid */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-muted/30 rounded-lg p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Passengers</p>
+                  <p className="text-xl font-bold">{selectedBooking.passenger_count}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Travel Date</p>
-                  <p className="font-medium">
+                <div className="bg-muted/30 rounded-lg p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Travel Date</p>
+                  <p className="text-sm font-medium">
                     {selectedBooking.travel_date
-                      ? new Date(selectedBooking.travel_date).toLocaleDateString()
+                      ? format(new Date(selectedBooking.travel_date), "MMM dd, yyyy")
                       : "Not set"}
                   </p>
                 </div>
+                <div className="bg-muted/30 rounded-lg p-3 text-center">
+                  <p className="text-xs text-muted-foreground">Tracking Status</p>
+                  <p className="text-sm font-medium">{trackingStatusLabels[selectedBooking.tracking_status]}</p>
+                </div>
               </div>
 
-              <div>
-                <p className="text-sm text-muted-foreground">Passenger Details</p>
-                {selectedBooking.passenger_details && (
-                  <div className="bg-muted/50 rounded p-3 mt-1">
-                    {Object.entries(selectedBooking.passenger_details).map(([key, value]) => (
-                      <p key={key} className="text-sm">
-                        <span className="capitalize">{key.replace(/([A-Z])/g, " $1")}: </span>
-                        <span className="font-medium">{value}</span>
-                      </p>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {selectedBooking.notes && (
+              {/* Passenger Details */}
+              {selectedBooking.passenger_details && Object.keys(selectedBooking.passenger_details).length > 0 && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Notes</p>
-                  <p className="text-sm bg-muted/50 rounded p-3 mt-1">{selectedBooking.notes}</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Passenger Details</p>
+                  <div className="bg-muted/30 rounded-lg p-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(selectedBooking.passenger_details).map(([key, value]) => (
+                        <p key={key} className="text-sm">
+                          <span className="text-muted-foreground capitalize">{key.replace(/([A-Z])/g, " $1")}: </span>
+                          <span className="font-medium">{value}</span>
+                        </p>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+              {/* Notes */}
+              {selectedBooking.notes && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Payment Status</p>
-                  <div className="mt-1">
-                    {getPaymentStatusBadge(selectedBooking.payment_status, selectedBooking.payment_method)}
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Customer Notes</p>
+                  <p className="text-sm bg-muted/30 rounded-lg p-3">{selectedBooking.notes}</p>
+                </div>
+              )}
+
+              {/* Payment Information */}
+              <div className="border-t pt-4">
+                <p className="text-sm font-medium text-muted-foreground mb-3">Payment Information</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Payment Status</p>
+                      <div className="mt-1">
+                        {getPaymentStatusBadge(selectedBooking.payment_status, selectedBooking.payment_method)}
+                      </div>
+                    </div>
+                    {selectedBooking.transaction_id && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Transaction ID</p>
+                        <p className="text-sm font-mono bg-muted/50 rounded px-2 py-1 mt-1">
+                          {selectedBooking.transaction_id}
+                        </p>
+                      </div>
+                    )}
+                    {selectedBooking.bank_transaction_number && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Bank Transaction #</p>
+                        <p className="text-sm font-mono bg-muted/50 rounded px-2 py-1 mt-1">
+                          {selectedBooking.bank_transaction_number}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  {selectedBooking.transaction_id && (
-                    <p className="text-xs text-muted-foreground mt-1 font-mono">
-                      TX: {selectedBooking.transaction_id}
-                    </p>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Booking Status</p>
+                    <div className="mt-1">{getStatusBadge(selectedBooking.status)}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* EMI/Installment Information */}
+              {(emiInfo || selectedBooking.payment_method === "installment") && (
+                <div className="border-t pt-4">
+                  <p className="text-sm font-medium text-muted-foreground mb-3">Installment Plan</p>
+                  {emiInfo ? (
+                    <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4">
+                      <div className="grid grid-cols-4 gap-3 text-center">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Advance Paid</p>
+                          <p className="text-lg font-bold text-green-600">{formatCurrency(emiInfo.advance_amount)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Remaining</p>
+                          <p className="text-lg font-bold text-orange-600">{formatCurrency(emiInfo.remaining_amount)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Installments</p>
+                          <p className="text-lg font-bold">{emiInfo.paid_emis}/{emiInfo.number_of_emis}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Progress</p>
+                          <p className="text-lg font-bold text-primary">
+                            {Math.round(((emiInfo.advance_amount + (emiInfo.paid_emis * (emiInfo.remaining_amount / emiInfo.number_of_emis))) / Number(selectedBooking.total_price)) * 100)}%
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <Badge variant="outline" className="text-orange-600 border-orange-300">
+                      <AlertCircle className="w-3 h-3 mr-1" />
+                      Installment plan not set up - use Installment button to configure
+                    </Badge>
                   )}
+                </div>
+              )}
+
+              {/* Total Amount */}
+              <div className="border-t pt-4 flex justify-between items-center">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Package Amount</p>
+                  <p className="text-3xl font-bold text-primary">
+                    {formatCurrency(Number(selectedBooking.total_price))}
+                  </p>
+                </div>
+                <div className="flex gap-2">
                   {selectedBooking.payment_status === "pending_cash" && (
                     <Button
                       size="sm"
-                      className="mt-2 gap-1"
+                      className="gap-1"
                       onClick={() => {
                         markCashAsPaid(selectedBooking.id);
                         setSelectedBooking(null);
@@ -864,19 +953,17 @@ const AdminBookings = ({ onUpdate }: AdminBookingsProps) => {
                       Mark as Paid
                     </Button>
                   )}
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Booking Status</p>
-                  <div className="mt-1">{getStatusBadge(selectedBooking.status)}</div>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center pt-4 border-t">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Amount</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatCurrency(Number(selectedBooking.total_price))}
-                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEmiBooking(selectedBooking);
+                      setSelectedBooking(null);
+                    }}
+                  >
+                    <Calculator className="w-4 h-4 mr-1" />
+                    Manage Installments
+                  </Button>
                 </div>
               </div>
             </motion.div>

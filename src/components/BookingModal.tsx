@@ -284,27 +284,34 @@ const BookingModal = ({ isOpen, onClose, package_info }: BookingModalProps) => {
     if (isInstallment) {
       const remaining = totalPrice - advanceAmount;
       const installmentAmount = Math.ceil(remaining / numberOfInstallments);
+      
+      // Generate EMI payment ID client-side to avoid SELECT after INSERT (RLS issue for guests)
+      const emiPaymentId = crypto.randomUUID();
 
-      // Create installment payment plan
-      const { data: emiData, error: emiError } = await supabase
+      // Create installment payment plan without .select() to avoid RLS issues
+      const { error: emiError } = await supabase
         .from("emi_payments")
         .insert({
+          id: emiPaymentId,
           booking_id: bookingId,
           total_amount: totalPrice,
           advance_amount: advanceAmount,
           number_of_emis: numberOfInstallments,
           emi_amount: installmentAmount,
-          paid_emis: 0,
+          paid_emis: advanceAmount > 0 ? 0 : 0, // Advance is separate from installments
           remaining_amount: remaining,
           is_emi_plan: true,
-        })
-        .select()
-        .single();
+        });
 
       if (emiError) {
         console.error("Error creating installment plan:", emiError);
-      } else if (emiData) {
-        // Create individual installments
+        toast({
+          title: "Warning",
+          description: "Booking created but installment plan setup failed. Please contact support.",
+          variant: "destructive",
+        });
+      } else {
+        // Create individual installments using the pre-generated ID
         const installmentsToCreate = [];
         const today = new Date();
         
@@ -313,7 +320,7 @@ const BookingModal = ({ isOpen, onClose, package_info }: BookingModalProps) => {
           dueDate.setMonth(dueDate.getMonth() + i);
           
           installmentsToCreate.push({
-            emi_payment_id: emiData.id,
+            emi_payment_id: emiPaymentId,
             installment_number: i,
             amount: i === numberOfInstallments ? remaining - (installmentAmount * (numberOfInstallments - 1)) : installmentAmount,
             due_date: dueDate.toISOString().split('T')[0],
@@ -321,7 +328,11 @@ const BookingModal = ({ isOpen, onClose, package_info }: BookingModalProps) => {
           });
         }
 
-        await supabase.from("emi_installments").insert(installmentsToCreate);
+        const { error: installmentError } = await supabase.from("emi_installments").insert(installmentsToCreate);
+        
+        if (installmentError) {
+          console.error("Error creating installments:", installmentError);
+        }
 
         // Send installment plan notification
         supabase.functions.invoke("send-emi-notification", {
