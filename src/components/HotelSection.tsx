@@ -131,14 +131,14 @@ const DEMO_HOTELS: Record<string, Record<string, { name: string; city: string; p
 };
 
 const COUNTRY_FLAGS: Record<string, string> = {
-  "Saudi Arabia": "🇸🇦",
-  "Dubai": "🇦🇪",
-  "Turkey": "🇹🇷",
-  "Malaysia": "🇲🇾",
-  "Thailand": "🇹🇭",
-  "Singapore": "🇸🇬",
-  "Indonesia": "🇮🇩",
-  "Egypt": "🇪🇬",
+  "Saudi Arabia": "https://flagcdn.com/w80/sa.png",
+  "Dubai": "https://flagcdn.com/w80/ae.png",
+  "Turkey": "https://flagcdn.com/w80/tr.png",
+  "Malaysia": "https://flagcdn.com/w80/my.png",
+  "Thailand": "https://flagcdn.com/w80/th.png",
+  "Singapore": "https://flagcdn.com/w80/sg.png",
+  "Indonesia": "https://flagcdn.com/w80/id.png",
+  "Egypt": "https://flagcdn.com/w80/eg.png",
 };
 
 const HotelSection = () => {
@@ -312,7 +312,11 @@ const HotelSection = () => {
                     onClick={() => setSelectedCountry(country)}
                     className="bg-card p-6 shadow-md rounded-xl hover:bg-primary/10 transition-colors text-left border"
                   >
-                    <span className="text-4xl mb-2 block">{COUNTRY_FLAGS[country] || "🌍"}</span>
+                    <img 
+                      src={COUNTRY_FLAGS[country] || "https://flagcdn.com/w80/xx.png"} 
+                      alt={`${country} flag`}
+                      className="w-12 h-8 object-cover rounded mb-2"
+                    />
                     <span className="font-medium">{country}</span>
                   </button>
                 ))}
