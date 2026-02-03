@@ -372,12 +372,20 @@ const Footer = () => {
                 <div className="w-10 h-10 bg-primary-foreground/10 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Mail className="w-5 h-5 text-secondary" />
                 </div>
-                <a 
-                  href={`mailto:${displayEmail}`}
-                  className="text-primary-foreground/80 text-sm pt-2 hover:text-secondary transition-colors"
-                >
-                  {displayEmail}
-                </a>
+                <div className="flex flex-col gap-1 pt-2">
+                  <a 
+                    href={`mailto:${displayEmail}`}
+                    className="text-primary-foreground/80 text-sm hover:text-secondary transition-colors"
+                  >
+                    {displayEmail}
+                  </a>
+                  <a 
+                    href="mailto:info@smelitehajj.com"
+                    className="text-primary-foreground/80 text-sm hover:text-secondary transition-colors"
+                  >
+                    info@smelitehajj.com
+                  </a>
+                </div>
               </li>
             </ul>
           </div>
