@@ -855,48 +855,57 @@ export default function AirTicketBookingModal({ open, onOpenChange }: AirTicketB
                           control={form.control}
                           name={`passengers.${index}.is_child`}
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
+                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4 bg-background">
                               <FormControl>
                                 <Checkbox
                                   checked={field.value}
-                                  onCheckedChange={field.onChange}
+                                  onCheckedChange={(checked) => {
+                                    field.onChange(checked);
+                                    // Clear child_age when unchecked
+                                    if (!checked) {
+                                      form.setValue(`passengers.${index}.child_age`, undefined);
+                                    }
+                                  }}
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel className="flex items-center gap-2">
+                                <FormLabel className="flex items-center gap-2 cursor-pointer">
                                   <Baby className="w-4 h-4 text-primary" />
-                                  Is Child Passenger
+                                  Child Passenger (Under 18)
                                 </FormLabel>
                                 <p className="text-xs text-muted-foreground">
-                                  Check if this passenger is under 18 years old
+                                  Check if this passenger is a child
                                 </p>
                               </div>
                             </FormItem>
                           )}
                         />
 
-                        {form.watch(`passengers.${index}.is_child`) && (
-                          <FormField
-                            control={form.control}
-                            name={`passengers.${index}.child_age`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Child Age *</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min={0}
-                                    max={17}
-                                    placeholder="Enter age (0-17)"
-                                    value={field.value ?? ""}
-                                    onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        )}
+                        <FormField
+                          control={form.control}
+                          name={`passengers.${index}.child_age`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-2">
+                                <Baby className="w-4 h-4 text-primary" />
+                                Child Age {form.watch(`passengers.${index}.is_child`) && '*'}
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={17}
+                                  placeholder="Enter age (0-17)"
+                                  value={field.value ?? ""}
+                                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                  disabled={!form.watch(`passengers.${index}.is_child`)}
+                                  className={!form.watch(`passengers.${index}.is_child`) ? "opacity-50" : ""}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
 
                       <FormField
