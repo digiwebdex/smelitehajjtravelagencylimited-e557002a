@@ -26,6 +26,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -56,6 +63,7 @@ const bookingSchema = z.object({
   room_count: z.coerce.number().min(1, "At least 1 room required"),
   adult_count: z.coerce.number().min(1, "At least 1 adult required"),
   child_count: z.coerce.number().min(0),
+  room_category: z.enum(["single", "double", "vip"], { required_error: "Please select a room category" }),
   special_requests: z.string().optional(),
 }).refine((data) => data.check_out_date > data.check_in_date, {
   message: "Check-out date must be after check-in date",
@@ -81,6 +89,7 @@ const HotelBookingModal = ({ hotel, open, onOpenChange }: HotelBookingModalProps
       room_count: 1,
       adult_count: 2,
       child_count: 0,
+      room_category: "single",
       special_requests: "",
     },
   });
@@ -111,6 +120,7 @@ const HotelBookingModal = ({ hotel, open, onOpenChange }: HotelBookingModalProps
         room_count: data.room_count,
         adult_count: data.adult_count,
         child_count: data.child_count,
+        room_category: data.room_category,
         special_requests: data.special_requests || null,
         status: "pending",
       });
@@ -353,6 +363,29 @@ const HotelBookingModal = ({ hotel, open, onOpenChange }: HotelBookingModalProps
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="room_category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Room Category *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select room category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="single">Single Room</SelectItem>
+                          <SelectItem value="double">Double Room</SelectItem>
+                          <SelectItem value="vip">VIP Room</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={form.control}

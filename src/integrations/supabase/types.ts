@@ -1475,6 +1475,7 @@ export type Database = {
           hotel_id: string | null
           id: string
           request_id: string
+          room_category: string | null
           room_count: number | null
           special_requests: string | null
           status: string | null
@@ -1495,6 +1496,7 @@ export type Database = {
           hotel_id?: string | null
           id?: string
           request_id: string
+          room_category?: string | null
           room_count?: number | null
           special_requests?: string | null
           status?: string | null
@@ -1515,6 +1517,7 @@ export type Database = {
           hotel_id?: string | null
           id?: string
           request_id?: string
+          room_category?: string | null
           room_count?: number | null
           special_requests?: string | null
           status?: string | null

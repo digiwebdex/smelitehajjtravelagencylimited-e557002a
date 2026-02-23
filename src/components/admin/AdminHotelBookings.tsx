@@ -59,6 +59,7 @@ interface HotelBookingRequest {
   room_count: number;
   adult_count: number;
   child_count: number;
+  room_category: string | null;
   special_requests: string | null;
   status: string;
   admin_notes: string | null;
@@ -441,6 +442,9 @@ export default function AdminHotelBookings() {
                     <TableCell>
                       <div className="text-sm">
                         <div>{booking.room_count} room(s)</div>
+                        {booking.room_category && (
+                          <div className="text-primary font-medium capitalize">{booking.room_category} Room</div>
+                        )}
                         <div className="text-muted-foreground">
                           {booking.adult_count} adults, {booking.child_count} children
                         </div>
