@@ -1,0 +1,1 @@
+ALTER TABLE public.hotel_booking_requests ADD COLUMN IF NOT EXISTS room_category text DEFAULT 'single';
