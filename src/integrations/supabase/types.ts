@@ -2122,6 +2122,7 @@ export type Database = {
           show_view_details: boolean | null
           special_notes: string | null
           stock: number
+          tenant_id: string | null
           title: string
           transport_type: string | null
           type: Database["public"]["Enums"]["package_type"]
@@ -2156,6 +2157,7 @@ export type Database = {
           show_view_details?: boolean | null
           special_notes?: string | null
           stock?: number
+          tenant_id?: string | null
           title: string
           transport_type?: string | null
           type: Database["public"]["Enums"]["package_type"]
@@ -2190,13 +2192,22 @@ export type Database = {
           show_view_details?: boolean | null
           special_notes?: string | null
           stock?: number
+          tenant_id?: string | null
           title?: string
           transport_type?: string | null
           type?: Database["public"]["Enums"]["package_type"]
           updated_at?: string
           weekly_bookings?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "packages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment_logs: {
         Row: {
@@ -2305,6 +2316,7 @@ export type Database = {
           id: string
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
+          tenant_id: string | null
           updated_at: string
         }
         Insert: {
@@ -2314,6 +2326,7 @@ export type Database = {
           id: string
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          tenant_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -2323,9 +2336,18 @@ export type Database = {
           id?: string
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          tenant_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referral_codes: {
         Row: {
@@ -2798,6 +2820,30 @@ export type Database = {
           role?: string
           updated_at?: string
           whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
+      tenants: {
+        Row: {
+          created_at: string
+          domain: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          id?: string
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
