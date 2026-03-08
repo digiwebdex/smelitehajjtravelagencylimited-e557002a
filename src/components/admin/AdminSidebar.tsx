@@ -54,7 +54,6 @@ interface AdminSidebarProps {
   onCollapsedChange: (collapsed: boolean) => void;
 }
 
-// Menu items organized by category
 const menuGroups = [
   {
     label: "Dashboard",
@@ -63,38 +62,14 @@ const menuGroups = [
     ]
   },
   {
-    label: "Orders & Bookings",
+    label: "Bookings & Orders",
     items: [
-      { value: "customers", label: "Customer Management", icon: Users },
+      { value: "customers", label: "Customers", icon: Users },
       { value: "bookings", label: "Package Bookings", icon: Package },
-      { value: "air-ticket-bookings", label: "Air Ticket Bookings", icon: Plane },
-      { value: "air-ticket-settings", label: "Air Ticket Settings", icon: Settings },
+      { value: "air-ticket-bookings", label: "Air Tickets", icon: Plane },
+      { value: "hotel-bookings", label: "Hotel Bookings", icon: Building2 },
       { value: "visa-applications", label: "Visa Applications", icon: Globe },
       { value: "group-inquiries", label: "Group Inquiries", icon: Users },
-    ]
-  },
-  {
-    label: "Marketing & Leads",
-    items: [
-      { value: "leads", label: "Leads CRM", icon: UserPlus },
-      { value: "marketing-analytics", label: "Marketing Analytics", icon: TrendingUp },
-      { value: "offer-popup", label: "Offer Popup", icon: Megaphone },
-      { value: "lead-magnets", label: "Lead Magnets", icon: FileText },
-      { value: "webinars", label: "Webinars", icon: Megaphone },
-      { value: "retargeting", label: "Retargeting Segments", icon: Activity },
-    ]
-  },
-  {
-    label: "Referral & Agents",
-    items: [
-      { value: "referrals", label: "Referrals", icon: Share2 },
-      { value: "agents", label: "Agents", icon: UserCog },
-    ]
-  },
-  {
-    label: "CRM & Automation",
-    items: [
-      { value: "crm-automation", label: "Follow-up Sequences", icon: MessageSquare },
     ]
   },
   {
@@ -103,49 +78,45 @@ const menuGroups = [
       { value: "packages", label: "Packages", icon: LayoutDashboard },
       { value: "package-sections", label: "Package Sections", icon: Layers },
       { value: "hotels", label: "Hotels", icon: Building2 },
-      { value: "hotel-bookings", label: "Hotel Bookings", icon: Building2 },
       { value: "hotel-settings", label: "Hotel Settings", icon: Settings },
+      { value: "air-ticket-settings", label: "Air Ticket Settings", icon: Plane },
     ]
   },
   {
-    label: "Accounting",
+    label: "Accounting & Finance",
     items: [
-      { value: "acc-dashboard", label: "Accounting Dashboard", icon: BookOpen },
+      { value: "acc-dashboard", label: "Accounting Overview", icon: BookOpen },
       { value: "chart-of-accounts", label: "Chart of Accounts", icon: ClipboardList },
       { value: "acc-income", label: "Income", icon: TrendingUp },
       { value: "acc-expense", label: "Expenses", icon: CreditCard },
       { value: "general-ledger", label: "General Ledger", icon: Landmark },
       { value: "bank-accounts", label: "Cash & Bank", icon: PiggyBank },
+      { value: "revenue", label: "Revenue Summary", icon: Wallet },
+      { value: "emi-report", label: "Installments", icon: Calculator },
+      { value: "payments", label: "Payment Methods", icon: Wallet },
+      { value: "transaction-logs", label: "Transactions", icon: Receipt },
+      { value: "reconciliation", label: "Reconciliation", icon: AlertTriangle },
       { value: "acc-reports", label: "Financial Reports", icon: BarChart3 },
     ]
   },
   {
-    label: "Finance",
+    label: "Marketing & CRM",
     items: [
-      { value: "revenue", label: "Revenue", icon: Wallet },
-      { value: "financial-analytics", label: "Financial Analytics", icon: Calculator },
+      { value: "leads", label: "Leads CRM", icon: UserPlus },
+      { value: "crm-automation", label: "Follow-up Sequences", icon: MessageSquare },
+      { value: "marketing-analytics", label: "Marketing Analytics", icon: TrendingUp },
+      { value: "offer-popup", label: "Offer Popup", icon: Megaphone },
+      { value: "lead-magnets", label: "Lead Magnets", icon: FileText },
+      { value: "referrals", label: "Referrals", icon: Share2 },
+      { value: "agents", label: "Agents", icon: UserCog },
+    ]
+  },
+  {
+    label: "Reports",
+    items: [
       { value: "reports", label: "Reports & Analytics", icon: BarChart3 },
-      { value: "hajji-reports", label: "Hajji-wise Reports", icon: Users },
-      { value: "reconciliation", label: "Payment Reconciliation", icon: AlertTriangle },
-      { value: "emi-report", label: "Installment Report", icon: Calculator },
-      { value: "payments", label: "Payment Methods", icon: Wallet },
-      { value: "transaction-logs", label: "Transaction Logs", icon: Receipt },
-    ]
-  },
-  {
-    label: "Team & Operations",
-    items: [
-      { value: "staff", label: "Staff Management", icon: UserCog },
-      { value: "audit-log", label: "Audit Log", icon: Activity },
-    ]
-  },
-  {
-    label: "Notifications & Templates",
-    items: [
-      { value: "notifications", label: "Notifications", icon: Bell },
-      { value: "notification-retry", label: "Notification Retry", icon: MessageSquare },
-      { value: "notification-templates", label: "Email/SMS Templates", icon: Mail },
-      { value: "booking-settings", label: "Booking Settings", icon: Settings },
+      { value: "financial-analytics", label: "Financial Analytics", icon: Calculator },
+      { value: "hajji-reports", label: "Hajji Reports", icon: Users },
     ]
   },
   {
@@ -160,7 +131,7 @@ const menuGroups = [
     ]
   },
   {
-    label: "Site Design",
+    label: "Website Design",
     items: [
       { value: "sections", label: "Section Visibility", icon: Layers },
       { value: "menu", label: "Menu", icon: Menu },
@@ -176,8 +147,19 @@ const menuGroups = [
     ]
   },
   {
+    label: "Notifications",
+    items: [
+      { value: "notifications", label: "Notifications", icon: Bell },
+      { value: "notification-retry", label: "Retry Queue", icon: MessageSquare },
+      { value: "notification-templates", label: "Templates", icon: Mail },
+      { value: "booking-settings", label: "Booking Settings", icon: Settings },
+    ]
+  },
+  {
     label: "System",
     items: [
+      { value: "staff", label: "Staff Management", icon: UserCog },
+      { value: "audit-log", label: "Audit Log", icon: Activity },
       { value: "backup", label: "Backup & Restore", icon: Shield },
       { value: "demo-account", label: "Demo Account", icon: Eye },
       { value: "settings", label: "Settings", icon: Settings },
@@ -194,7 +176,6 @@ const AdminSidebar = ({ activeTab, onTabChange, collapsed, onCollapsedChange }: 
           collapsed ? "w-16" : "w-60"
         )}
       >
-        {/* Collapse Toggle */}
         <div className="p-2 flex justify-end border-b border-border">
           <Button
             variant="ghost"
@@ -209,7 +190,6 @@ const AdminSidebar = ({ activeTab, onTabChange, collapsed, onCollapsedChange }: 
           </Button>
         </div>
 
-        {/* Menu Items */}
         <ScrollArea className="flex-1 py-2">
           <nav className="space-y-4 px-2">
             {menuGroups.map((group) => (
