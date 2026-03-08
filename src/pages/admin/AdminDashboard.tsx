@@ -58,13 +58,11 @@ import AdminBookingSettings from "@/components/admin/AdminBookingSettings";
 import AdminLeadsManagement from "@/components/admin/AdminLeadsManagement";
 import AdminMarketingAnalytics from "@/components/admin/AdminMarketingAnalytics";
 import AdminLeadMagnets from "@/components/admin/AdminLeadMagnets";
-import AdminWebinars from "@/components/admin/AdminWebinars";
 import AdminReferrals from "@/components/admin/AdminReferrals";
 import AdminAgents from "@/components/admin/AdminAgents";
 import AdminCRMAutomation from "@/components/admin/AdminCRMAutomation";
 import AdminGroupInquiries from "@/components/admin/AdminGroupInquiries";
 import AdminFinancialAnalytics from "@/components/admin/AdminFinancialAnalytics";
-import AdminRetargetingSegments from "@/components/admin/AdminRetargetingSegments";
 import AdminBlog from "@/components/admin/AdminBlog";
 import AdminTranslations from "@/components/admin/AdminTranslations";
 import AdminTransactionLogs from "@/components/admin/AdminTransactionLogs";
@@ -206,139 +204,73 @@ const AdminDashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "overview":
-        return <AdminOverview />;
-      case "customers":
-        return <AdminCustomers />;
-      case "bookings":
-        return <AdminBookings onUpdate={fetchStats} />;
-      case "air-ticket-bookings":
-        return <AdminAirTicketBookings />;
-      case "air-ticket-settings":
-        return <AdminAirTicketSettings />;
-      case "visa-applications":
-        return <AdminVisaApplications />;
-      case "leads":
-        return <AdminLeadsManagement />;
-      case "marketing-analytics":
-        return <AdminMarketingAnalytics />;
-      case "lead-magnets":
-        return <AdminLeadMagnets />;
-      case "webinars":
-        return <AdminWebinars />;
-      case "retargeting":
-        return <AdminRetargetingSegments />;
-      case "offer-popup":
-        return <AdminOfferPopup />;
-      case "referrals":
-        return <AdminReferrals />;
-      case "agents":
-        return <AdminAgents />;
-      case "crm-automation":
-        return <AdminCRMAutomation />;
-      case "group-inquiries":
-        return <AdminGroupInquiries />;
-      case "packages":
-        return <AdminPackages onUpdate={fetchStats} />;
-      case "package-sections":
-        return <AdminPackageSections />;
-      case "hotels":
-        return <AdminHotels />;
-      case "hotel-bookings":
-        return <AdminHotelBookings />;
-      case "hotel-settings":
-        return <AdminHotelSettings />;
-      case "revenue":
-        return <AdminRevenue />;
-      case "financial-analytics":
-        return <AdminFinancialAnalytics />;
-      case "reports":
-        return <AdminReportsAnalytics />;
-      case "hajji-reports":
-        return <AdminHajjiReports />;
-      case "reconciliation":
-        return <AdminPaymentReconciliation />;
-      case "emi-report":
-        return <AdminEMIReport />;
-      case "payments":
-        return <AdminPaymentMethods />;
-      case "transaction-logs":
-        return <AdminTransactionLogs />;
-      case "staff":
-        return <AdminStaffManagement />;
-      case "audit-log":
-        return <AdminAuditLog />;
-      case "notifications":
-        return <AdminNotifications />;
-      case "notification-retry":
-        return <AdminNotificationRetry />;
-      case "notification-templates":
-        return <AdminNotificationTemplates />;
-      case "booking-settings":
-        return <AdminBookingSettings />;
-      case "blog":
-        return <AdminBlog />;
-      case "notices":
-        return <AdminNotices />;
-      case "gallery":
-        return <AdminGallery />;
-      case "testimonials":
-        return <AdminTestimonials />;
-      case "faq":
-        return <AdminFAQ />;
-      case "translations":
-        return <AdminTranslations />;
-      case "sections":
-        return <AdminSectionVisibility />;
-      case "menu":
-        return <AdminMenu />;
-      case "hero":
-        return <AdminHero />;
-      case "services":
-        return <AdminServices />;
-      case "team":
-        return <AdminTeam />;
-      case "visa":
-        return <AdminVisa />;
-      case "contact":
-        return <AdminContact />;
-      case "offices":
-        return <AdminOfficeLocations />;
-      case "social-networks":
-        return <AdminSocialNetworks />;
-      case "footer":
-        return <AdminFooter />;
-      case "legal":
-        return <AdminLegalPages />;
-      case "backup":
-        return <AdminBackupRestore />;
-      case "demo-account":
-        return <AdminDemoAccount />;
-      case "acc-dashboard":
-        return <AccountingDashboard />;
-      case "chart-of-accounts":
-        return <ChartOfAccounts />;
-      case "acc-income":
-        return <IncomeManagement />;
-      case "acc-expense":
-        return <ExpenseManagement />;
-      case "general-ledger":
-        return <GeneralLedger />;
-      case "bank-accounts":
-        return <BankAccounts />;
-      case "acc-reports":
-        return <FinancialReports />;
-      case "settings":
-        return <AdminSettings />;
-      default:
-        return <AdminOverview />;
+      case "overview": return <AdminOverview />;
+      case "customers": return <AdminCustomers />;
+      case "bookings": return <AdminBookings onUpdate={fetchStats} />;
+      case "air-ticket-bookings": return <AdminAirTicketBookings />;
+      case "air-ticket-settings": return <AdminAirTicketSettings />;
+      case "visa-applications": return <AdminVisaApplications />;
+      case "leads": return <AdminLeadsManagement />;
+      case "marketing-analytics": return <AdminMarketingAnalytics />;
+      case "lead-magnets": return <AdminLeadMagnets />;
+      case "offer-popup": return <AdminOfferPopup />;
+      case "referrals": return <AdminReferrals />;
+      case "agents": return <AdminAgents />;
+      case "crm-automation": return <AdminCRMAutomation />;
+      case "group-inquiries": return <AdminGroupInquiries />;
+      case "packages": return <AdminPackages onUpdate={fetchStats} />;
+      case "package-sections": return <AdminPackageSections />;
+      case "hotels": return <AdminHotels />;
+      case "hotel-bookings": return <AdminHotelBookings />;
+      case "hotel-settings": return <AdminHotelSettings />;
+      case "revenue": return <AdminRevenue />;
+      case "financial-analytics": return <AdminFinancialAnalytics />;
+      case "reports": return <AdminReportsAnalytics />;
+      case "hajji-reports": return <AdminHajjiReports />;
+      case "reconciliation": return <AdminPaymentReconciliation />;
+      case "emi-report": return <AdminEMIReport />;
+      case "payments": return <AdminPaymentMethods />;
+      case "transaction-logs": return <AdminTransactionLogs />;
+      case "staff": return <AdminStaffManagement />;
+      case "audit-log": return <AdminAuditLog />;
+      case "notifications": return <AdminNotifications />;
+      case "notification-retry": return <AdminNotificationRetry />;
+      case "notification-templates": return <AdminNotificationTemplates />;
+      case "booking-settings": return <AdminBookingSettings />;
+      case "blog": return <AdminBlog />;
+      case "notices": return <AdminNotices />;
+      case "gallery": return <AdminGallery />;
+      case "testimonials": return <AdminTestimonials />;
+      case "faq": return <AdminFAQ />;
+      case "translations": return <AdminTranslations />;
+      case "sections": return <AdminSectionVisibility />;
+      case "menu": return <AdminMenu />;
+      case "hero": return <AdminHero />;
+      case "services": return <AdminServices />;
+      case "team": return <AdminTeam />;
+      case "visa": return <AdminVisa />;
+      case "contact": return <AdminContact />;
+      case "offices": return <AdminOfficeLocations />;
+      case "social-networks": return <AdminSocialNetworks />;
+      case "footer": return <AdminFooter />;
+      case "legal": return <AdminLegalPages />;
+      case "backup": return <AdminBackupRestore />;
+      case "demo-account": return <AdminDemoAccount />;
+      case "acc-dashboard": return <AccountingDashboard />;
+      case "chart-of-accounts": return <ChartOfAccounts />;
+      case "acc-income": return <IncomeManagement />;
+      case "acc-expense": return <ExpenseManagement />;
+      case "general-ledger": return <GeneralLedger />;
+      case "bank-accounts": return <BankAccounts />;
+      case "acc-reports": return <FinancialReports />;
+      case "settings": return <AdminSettings />;
+      default: return <AdminOverview />;
     }
   };
 
   return (
     <ViewerModeProvider>
       <div className="min-h-screen bg-muted/30">
-        {/* Header */}
         <header className="bg-card border-b border-border sticky top-0 z-50">
           <div className="px-4 lg:px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -372,11 +304,9 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        {/* Mobile Navigation */}
         <AdminMobileNav activeTab={activeTab} onTabChange={setActiveTab} />
 
         <div className="flex">
-          {/* Desktop Sidebar */}
           <AdminSidebar 
             activeTab={activeTab} 
             onTabChange={setActiveTab}
@@ -384,9 +314,7 @@ const AdminDashboard = () => {
             onCollapsedChange={setSidebarCollapsed}
           />
 
-          {/* Main Content */}
           <main className="flex-1 p-4 lg:p-6 min-w-0">
-            {/* Viewer Mode Banner */}
             {isViewer && (
               <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center gap-2 text-amber-800 dark:text-amber-200">
                 <Eye className="w-4 h-4" />
@@ -394,7 +322,6 @@ const AdminDashboard = () => {
               </div>
             )}
             
-            {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
               {statCards.map((stat, index) => (
                 <motion.div
@@ -420,7 +347,6 @@ const AdminDashboard = () => {
               ))}
             </div>
 
-            {/* Tab Content */}
             <div className="animate-in fade-in-50 duration-300">
               {renderContent()}
             </div>
