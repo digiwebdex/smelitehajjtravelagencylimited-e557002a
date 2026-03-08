@@ -201,6 +201,8 @@ const AdminDashboard = () => {
     switch (activeTab) {
       case "overview":
         return <AdminOverview />;
+      case "customers":
+        return <AdminCustomers />;
       case "bookings":
         return <AdminBookings onUpdate={fetchStats} />;
       case "air-ticket-bookings":
