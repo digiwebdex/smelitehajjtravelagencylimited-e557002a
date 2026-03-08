@@ -310,11 +310,133 @@ const AdminCustomers = () => {
   );
 
   const getDocSignedUrl = async (filePath: string) => {
-    // Extract path from public URL
     const parts = filePath.split("/customer-documents/");
     const path = parts[parts.length - 1];
     const { data } = await supabase.storage.from("customer-documents").createSignedUrl(path, 3600);
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+  };
+
+  const handleViewCustomer = async (customer: Customer) => {
+    setViewCustomer(customer);
+    setShowViewDialog(true);
+    setViewDocsLoading(true);
+    const { data } = await (supabase as any)
+      .from("customer_documents").select("*")
+      .eq("customer_id", customer.id).order("uploaded_at", { ascending: false });
+    setViewDocuments(data || []);
+    setViewDocsLoading(false);
+  };
+
+  const generateCustomerPDF = (customer: Customer, docs: CustomerDocument[]) => {
+    const doc = new jsPDF();
+    const pw = doc.internal.pageSize.getWidth();
+    const green: [number, number, number] = [34, 97, 51];
+    const gray: [number, number, number] = [100, 100, 100];
+
+    // Header
+    doc.setFillColor(...green);
+    doc.rect(0, 0, pw, 40, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("S. M. Elite Hajj Limited", pw / 2, 18, { align: "center" });
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text("Customer Profile", pw / 2, 30, { align: "center" });
+
+    let y = 50;
+
+    // Personal Info
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Personal Information", 14, y);
+    y += 6;
+
+    const personalData: [string, string][] = [
+      ["Full Name", customer.full_name],
+      ["Email", customer.email || "—"],
+      ["Phone", customer.phone || "—"],
+      ["Passport No.", customer.passport_number || "—"],
+      ["Nationality", customer.nationality || "—"],
+      ["Date of Birth", customer.date_of_birth ? format(new Date(customer.date_of_birth), "dd MMM yyyy") : "—"],
+      ["Gender", customer.gender ? customer.gender.charAt(0).toUpperCase() + customer.gender.slice(1) : "—"],
+      ["Address", customer.address || "—"],
+      ["Status", customer.status || "—"],
+    ];
+
+    autoTable(doc, {
+      startY: y, head: [], body: personalData, theme: "striped",
+      styles: { fontSize: 9, cellPadding: 3 },
+      columnStyles: { 0: { fontStyle: "bold", cellWidth: 50, textColor: gray }, 1: { cellWidth: "auto" } },
+      margin: { left: 14, right: 14 },
+    });
+    y = (doc as any).lastAutoTable.finalY + 8;
+
+    // Emergency Contact
+    if (customer.emergency_contact_name || customer.emergency_contact_phone) {
+      doc.setFontSize(13);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("Emergency Contact", 14, y);
+      y += 6;
+      const emData: [string, string][] = [];
+      if (customer.emergency_contact_name) emData.push(["Name", customer.emergency_contact_name]);
+      if (customer.emergency_contact_phone) emData.push(["Phone", customer.emergency_contact_phone]);
+      autoTable(doc, {
+        startY: y, head: [], body: emData, theme: "plain",
+        styles: { fontSize: 9, cellPadding: 2 },
+        columnStyles: { 0: { fontStyle: "bold", cellWidth: 50, textColor: gray } },
+        margin: { left: 14, right: 14 },
+      });
+      y = (doc as any).lastAutoTable.finalY + 8;
+    }
+
+    // Notes
+    if (customer.notes) {
+      doc.setFontSize(13);
+      doc.setFont("helvetica", "bold");
+      doc.text("Notes", 14, y);
+      y += 6;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(customer.notes, 14, y, { maxWidth: pw - 28 });
+      y += 12;
+    }
+
+    // Documents
+    if (docs.length > 0) {
+      if (y > 240) { doc.addPage(); y = 20; }
+      doc.setFontSize(13);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("Uploaded Documents", 14, y);
+      y += 6;
+      const docData = docs.map(d => [
+        d.document_type,
+        d.file_name,
+        format(new Date(d.uploaded_at), "dd MMM yyyy"),
+        d.file_size ? `${(d.file_size / 1024).toFixed(0)} KB` : "—"
+      ]);
+      autoTable(doc, {
+        startY: y,
+        head: [["Type", "File Name", "Date", "Size"]],
+        body: docData, theme: "grid",
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: green, textColor: [255, 255, 255] },
+        margin: { left: 14, right: 14 },
+      });
+    }
+
+    // Footer
+    const fY = doc.internal.pageSize.getHeight() - 20;
+    doc.setFillColor(...green);
+    doc.rect(0, fY, pw, 20, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.text("S. M. Elite Hajj Limited | Phone: +8801867666888 | Email: info@smelitehajj.com", pw / 2, fY + 12, { align: "center" });
+
+    doc.save(`Customer_${customer.full_name.replace(/\s+/g, "_")}_${customer.id.slice(0, 8)}.pdf`);
   };
 
   return (
