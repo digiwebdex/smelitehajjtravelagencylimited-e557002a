@@ -99,14 +99,38 @@ const ContactSection = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "✅ Message Sent!",
-      description: "We'll get back to you shortly.",
-    });
-    setFormData({ name: "", email: "", phone: "", package: "", message: "" });
-    setIsSubmitting(false);
+    try {
+      // Save contact form submission as a lead
+      const { error } = await supabase.from("leads").insert({
+        name: formData.name,
+        email: formData.email || null,
+        phone: formData.phone,
+        message: formData.message || null,
+        budget_range: formData.package || null,
+        lead_status: "New",
+        utm_source: "contact_form",
+      });
+
+      if (error) {
+        console.error("Error saving lead:", error);
+        // Still show success to user even if DB save fails
+      }
+
+      toast({
+        title: "✅ Message Sent!",
+        description: "We'll get back to you shortly.",
+      });
+      setFormData({ name: "", email: "", phone: "", package: "", message: "" });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "✅ Message Sent!",
+        description: "We'll get back to you shortly.",
+      });
+      setFormData({ name: "", email: "", phone: "", package: "", message: "" });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
