@@ -290,15 +290,15 @@ const BookingConfirmation = () => {
                     <div key={step.status} className="relative z-10 flex flex-col items-center">
                       <div
                         className={cn(
-                          "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
+                          "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300",
                           isCompleted ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
                           isCurrent && "ring-4 ring-primary/20 scale-110"
                         )}
                       >
-                        <Icon className="w-5 h-5" />
+                        <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                       </div>
                       <span className={cn(
-                        "text-xs mt-2 text-center max-w-[70px]",
+                        "text-[9px] sm:text-xs mt-1.5 sm:mt-2 text-center max-w-[50px] sm:max-w-[70px] leading-tight",
                         isCompleted ? "text-foreground font-medium" : "text-muted-foreground"
                       )}>
                         {step.label}
