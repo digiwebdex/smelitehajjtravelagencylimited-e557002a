@@ -45,6 +45,7 @@ const App = () => (
             <BrowserRouter>
               <AnalyticsTracker />
               <FacebookPixel />
+              <DynamicSEOHead />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
