@@ -315,6 +315,20 @@ const AdminDashboard = () => {
         return <AdminBackupRestore />;
       case "demo-account":
         return <AdminDemoAccount />;
+      case "acc-dashboard":
+        return <AccountingDashboard />;
+      case "chart-of-accounts":
+        return <ChartOfAccounts />;
+      case "acc-income":
+        return <IncomeManagement />;
+      case "acc-expense":
+        return <ExpenseManagement />;
+      case "general-ledger":
+        return <GeneralLedger />;
+      case "bank-accounts":
+        return <BankAccounts />;
+      case "acc-reports":
+        return <FinancialReports />;
       case "settings":
         return <AdminSettings />;
       default:
