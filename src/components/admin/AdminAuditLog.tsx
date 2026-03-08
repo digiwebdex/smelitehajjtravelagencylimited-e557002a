@@ -91,17 +91,17 @@ const AdminAuditLog = () => {
     try {
       // Calculate date filter
       const now = new Date();
-      let dateFilter: string | null = null;
+      let dateFrom: string | null = null;
       
       if (dateFilter === "today") {
-        const startOfDay = new Date(now.setHours(0, 0, 0, 0)).toISOString();
-        dateFilter = startOfDay;
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        dateFrom = startOfDay;
       } else if (dateFilter === "7days") {
         const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-        dateFilter = sevenDaysAgo;
+        dateFrom = sevenDaysAgo;
       } else if (dateFilter === "30days") {
         const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-        dateFilter = thirtyDaysAgo;
+        dateFrom = thirtyDaysAgo;
       }
 
       // Fetch activity logs
