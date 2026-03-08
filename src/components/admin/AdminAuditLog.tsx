@@ -104,12 +104,18 @@ const AdminAuditLog = () => {
         dateFrom = thirtyDaysAgo;
       }
 
-      // Fetch activity logs
-      const { data: logsData, error: logsError } = await supabase
+      // Fetch activity logs with date filter
+      let query = supabase
         .from("staff_activity_log")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(500);
+      
+      if (dateFrom) {
+        query = query.gte("created_at", dateFrom);
+      }
+
+      const { data: logsData, error: logsError } = await query;
 
       if (logsError) throw logsError;
 
