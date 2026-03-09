@@ -21,6 +21,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import LegalPage from "./pages/LegalPage";
 import PaymentResult from "./pages/PaymentResult";
 import BookingConfirmation from "./pages/BookingConfirmation";
+import Blog from "./pages/Blog";
+import BlogPostPage from "./pages/BlogPost";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
