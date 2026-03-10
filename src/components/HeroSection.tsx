@@ -71,7 +71,7 @@ const HeroSection = () => {
   const [imageFocalPoint, setImageFocalPoint] = useState<"top" | "center" | "bottom">("center");
   const [heroTopMargin, setHeroTopMargin] = useState<string>("0");
   const [isMobile, setIsMobile] = useState(false);
-  const autoplayRef = useRef<NodeJS.Timeout | null>(null);
+  const autoplayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
