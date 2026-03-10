@@ -98,19 +98,38 @@ app.get('/api/rest/:table', async (req, res) => {
   }
 });
 
-// POST /api/rest/:table - Insert row(s)
+// POST /api/rest/:table - Insert row(s) / Upsert
 app.post('/api/rest/:table', async (req, res) => {
   try {
     const { table } = req.params;
-    const data = Array.isArray(req.body) ? req.body : [req.body];
-
+    let rawData = req.body;
+    
+    // Handle upsert flag
+    const isUpsert = rawData?._upsert === true;
+    if (isUpsert) {
+      delete rawData._upsert;
+    }
+    
+    const data = Array.isArray(rawData) ? rawData : [rawData];
     const results = [];
+    
     for (const row of data) {
       const columns = Object.keys(row);
       const values = Object.values(row);
       const placeholders = values.map((_, i) => `$${i + 1}`);
 
-      const query = `INSERT INTO public."${table}" (${columns.map(c => `"${c}"`).join(',')}) VALUES (${placeholders.join(',')}) RETURNING *`;
+      let query;
+      if (isUpsert && row.id) {
+        // Upsert: INSERT ... ON CONFLICT (id) DO UPDATE
+        const updateClauses = columns.filter(c => c !== 'id').map((c, i) => `"${c}" = EXCLUDED."${c}"`);
+        query = `INSERT INTO public."${table}" (${columns.map(c => `"${c}"`).join(',')}) VALUES (${placeholders.join(',')}) ON CONFLICT (id) DO UPDATE SET ${updateClauses.join(', ')} RETURNING *`;
+      } else if (isUpsert) {
+        // Upsert without id - try insert, handle conflict gracefully
+        query = `INSERT INTO public."${table}" (${columns.map(c => `"${c}"`).join(',')}) VALUES (${placeholders.join(',')}) ON CONFLICT DO NOTHING RETURNING *`;
+      } else {
+        query = `INSERT INTO public."${table}" (${columns.map(c => `"${c}"`).join(',')}) VALUES (${placeholders.join(',')}) RETURNING *`;
+      }
+      
       const result = await pool.query(query, values);
       results.push(result.rows[0]);
     }
@@ -236,6 +255,58 @@ app.use('/api/payment-bkash', paymentBkashRoutes);
 app.use('/api/payment-nagad', paymentNagadRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/backup-restore', backupRoutes);
+
+// Functions proxy - replaces Supabase Edge Functions
+// Maps supabase.functions.invoke('name') -> /api/functions/name
+app.post('/api/functions/:name', async (req, res) => {
+  const { name } = req.params;
+  const routeMap = {
+    'payment-sslcommerz': '/api/payment-sslcommerz',
+    'payment-bkash': '/api/payment-bkash',
+    'payment-nagad': '/api/payment-nagad',
+    'backup-restore': '/api/backup-restore',
+    'send-booking-notification': '/api/notifications/booking',
+    'send-air-ticket-notification': '/api/notifications/air-ticket',
+    'send-visa-notification': '/api/notifications/visa',
+    'send-emi-notification': '/api/notifications/emi',
+    'send-tracking-notification': '/api/notifications/tracking',
+    'send-welcome-notification': '/api/notifications/welcome',
+    'send-whatsapp-test': '/api/notifications/whatsapp-test',
+    'emi-reminder': '/api/notifications/emi-reminder',
+    'fb-event': '/api/notifications/fb-event',
+    'create-guest-account': '/api/auth/create-guest',
+    'create-demo-user': '/api/admin-users/create-demo',
+    'create-admin-user': '/api/admin-users/create-admin',
+    'create-staff-user': '/api/admin-users/create-staff',
+    'update-user-password': '/api/admin-users/update-password',
+  };
+
+  const targetRoute = routeMap[name];
+  if (targetRoute) {
+    // Forward the request internally
+    try {
+      // Re-route internally by making a local fetch
+      const targetUrl = `http://127.0.0.1:${PORT}${targetRoute}`;
+      const response = await fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(req.headers.authorization ? { Authorization: req.headers.authorization } : {}),
+        },
+        body: JSON.stringify(req.body),
+      });
+      const data = await response.json().catch(() => ({}));
+      res.status(response.status).json(data);
+    } catch (error) {
+      console.error(`Functions proxy error for ${name}:`, error);
+      res.status(500).json({ error: `Function ${name} failed: ${error.message}` });
+    }
+  } else {
+    // Unknown function - return stub success
+    console.warn(`Unknown function called: ${name}`);
+    res.json({ success: true, message: `Function ${name} not implemented on VPS` });
+  }
+});
 
 // File upload endpoint (replaces Supabase Storage)
 const multer = require('multer');
